@@ -1,26 +1,146 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --primary: #7C1CF5;
+  --primary-hover: #6D14DF;
+  --secondary: #9333EA;
+  --bg-banner: #7C1CF5;
+  --card-border: #EDE9FE;
+  --lavender: #F3E8FF;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #FFFFFF;
+  color: #1E1B4B;
+  font-family: var(--font-jakarta), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* Botcubey Canlı Mor Buton ve Hover */
+.btn-theme,
+.btn-botcubey {
+  background: linear-gradient(135deg, #7C1CF5 0%, #8E2DE2 100%);
+  color: #FFFFFF;
+  font-weight: 700;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 18px 0 rgba(124, 28, 245, 0.38);
+}
+
+.btn-theme:hover,
+.btn-botcubey:hover {
+  filter: brightness(1.08);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px 0 rgba(124, 28, 245, 0.5);
+}
+
+.btn-kick {
+  background: linear-gradient(135deg, #7C1CF5 0%, #8E2DE2 100%);
+  color: #FFFFFF;
+  font-weight: 700;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 18px 0 rgba(124, 28, 245, 0.35);
+}
+
+.btn-kick:hover {
+  filter: brightness(1.08);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px 0 rgba(124, 28, 245, 0.5);
+}
+
+.btn-white {
+  background-color: #FFFFFF;
+  color: #7C1CF5;
+  font-weight: 700;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.btn-white:hover {
+  background-color: #FAF5FF;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(124, 28, 245, 0.18);
+}
+
+/* Botcubey Beyaz Kart Tasarımı */
+.card-theme,
+.card-botcubey {
+  background-color: #FFFFFF;
+  border: 1px solid #EDE9FE;
+  border-radius: 24px;
+  box-shadow: 0 10px 30px -5px rgba(124, 28, 245, 0.06);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-theme:hover,
+.card-botcubey:hover {
+  border-color: #C084FC;
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px -5px rgba(124, 28, 245, 0.16);
+}
+
+/* Form Elemanları */
+.input-theme,
+.input-botcubey {
+  background-color: #FFFFFF;
+  border: 1.5px solid #E2E8F0;
+  color: #1E1B4B;
+  border-radius: 14px;
+  transition: all 0.2s ease-in-out;
+}
+
+.input-theme:focus,
+.input-botcubey:focus {
+  border-color: #7C1CF5;
+  box-shadow: 0 0 0 4px rgba(124, 28, 245, 0.15) !important;
+  outline: none;
+}
+
+/* Yumuşak kaydırma */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+::-webkit-scrollbar-track {
+  background: #FAF5FF;
+}
+::-webkit-scrollbar-thumb {
+  background: #D8B4FE;
+  border-radius: 6px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #7C1CF5;
+}
+
+/* Hedefe yönlendirme & İncele tıklandığında yanıp sönen vurgu animasyonu */
+@keyframes targetHighlight {
+  0% {
+    box-shadow: 0 0 0 0 rgba(124, 28, 245, 0.85);
+    border-color: #7C1CF5;
+    transform: scale(1.02);
+  }
+  40% {
+    box-shadow: 0 0 35px 8px rgba(124, 28, 245, 0.4);
+    border-color: #A855F7;
+    transform: scale(1.025);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(124, 28, 245, 0);
+    border-color: #EDE9FE;
+    transform: scale(1);
+  }
+}
+
+.highlight-pulse {
+  animation: targetHighlight 2.5s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+  border-color: #7C1CF5 !important;
+  z-index: 30 !important;
+  position: relative !important;
 }

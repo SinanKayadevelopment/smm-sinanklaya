@@ -1,0 +1,116 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Platform {
+  id         String     @id @default(cuid())
+  name       String
+  slug       String     @unique
+  icon       String     // Lucide icon name or platform identifier
+  colorCode  String     // Hex color code (e.g., #9146FF for Twitch, #53FC18 for Kick)
+  sortOrder  Int        @default(0)
+  isActive   Boolean    @default(true)
+  categories Category[]
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+}
+
+model Category {
+  id               String    @id @default(cuid())
+  platformId       String
+  platform         Platform  @relation(fields: [platformId], references: [id], onDelete: Cascade)
+  name             String
+  slug             String
+  shortDescription String?
+  seoTitle         String?
+  seoDescription   String?
+  infoNotes        String?   // JSON string
+  sortOrder        Int       @default(0)
+  isActive         Boolean   @default(true)
+  packages         Package[]
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@unique([platformId, slug])
+}
+
+model Package {
+  id                String    @id @default(cuid())
+  categoryId        String
+  category          Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  name              String
+  slug              String    @unique
+  price             Float
+  oldPrice          Float?
+  quantity          Int
+  providerServiceId Int?
+  features          String    // JSON array of strings
+  isPopular         Boolean   @default(false)
+  isActive          Boolean   @default(true)
+  sortOrder         Int       @default(0)
+  orders            Order[]
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
+model Coupon {
+  id              String   @id @default(cuid())
+  code            String   @unique
+  discountPercent Int
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Order {
+  id              String   @id @default(cuid())
+  orderCode       String   @unique // e.g. DST-849201
+  packageId       String
+  package         Package  @relation(fields: [packageId], references: [id])
+  targetLink      String   // Only channel or profile URL
+  customerType    String   @default("BIREYSEL") // "BIREYSEL" | "KURUMSAL"
+  customerName    String
+  customerEmail   String
+  customerPhone   String
+  companyName     String?
+  taxNumber       String?
+  couponCode      String?
+  discountAmount  Float    @default(0)
+  totalAmount     Float
+  paymentMethod   String   @default("ONLINE_PAYTR") // "ONLINE_PAYTR" | "EFT_HAVALE" | "MOBIL_ODEME"
+  paymentStatus   String   @default("PENDING") // "PENDING" | "PAID" | "FAILED" | "REFUNDED"
+  providerOrderId String?
+  orderStatus     String   @default("WAITING") // "WAITING" | "PROCESSING" | "IN_PROGRESS" | "COMPLETED" | "PARTIAL" | "CANCELED" | "ERROR"
+  startCount      Int?     @default(0)
+  remains         Int?     @default(0)
+  paytrToken      String?
+  errorMessage    String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model BankAccount {
+  id            String   @id @default(cuid())
+  bankName      String
+  accountHolder String
+  iban          String
+  branchCode    String?
+  isActive      Boolean  @default(true)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
