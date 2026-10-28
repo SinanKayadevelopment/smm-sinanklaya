@@ -10,7 +10,7 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://yayincikral.com"),
+  metadataBase: new URL("https://www.yayincikral.com"),
   title: {
     default: "Yayıncı Kral | Türkiye'nin 1 Numaralı Yayıncı ve Sosyal Medya Hizmetleri",
     template: "%s | Yayıncı Kral",
