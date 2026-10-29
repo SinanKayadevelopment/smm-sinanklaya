@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { generatePayTrToken } from "@/lib/paytr";
-import { generateShopierPayment } from "@/lib/shopier";
+import { generateShopierPayment, getShopierConfig } from "@/lib/shopier";
 
 function generateOrderCode(): string {
   const randomNum = Math.floor(100000 + Math.random() * 900000);
@@ -57,6 +57,21 @@ export async function POST(request: NextRequest) {
       });
       if (coupon && coupon.isActive) {
         discountAmount = Number(((pkg.price * coupon.discountPercent) / 100).toFixed(2));
+      }
+    }
+
+    // Online Ödeme Seçilmişse Shopier API anahtarlarının tanımlı olduğunu doğrula
+    if (paymentMethod === "ONLINE_SHOPIER" || paymentMethod === "ONLINE_PAYTR") {
+      const config = await getShopierConfig();
+      if (!config.apiKey || !config.apiSecret) {
+        return NextResponse.json(
+          {
+            success: false,
+            message:
+              "Shopier Sanal POS henüz yapılandırılmamış. Lütfen Yönetim Paneli > Sistem & Ödeme Ayarları (/admin/settings) sayfasından Shopier API Key ve API Secret bilgilerinizi kaydediniz.",
+          },
+          { status: 400 }
+        );
       }
     }
 

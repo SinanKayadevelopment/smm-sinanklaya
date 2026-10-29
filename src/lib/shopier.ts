@@ -153,12 +153,18 @@ export async function generateShopierPayment(params: ShopierPaymentParams): Prom
   // API_secret ile HMAC-SHA256 şifrele ve base64'e dönüştür.
   const dataToSign = `${random_nr}${platform_order_id}${total_order_value}${currency}`;
   const signature = crypto
-    .createHmac("sha256", config.apiSecret || "DEMO_SHOPIER_SECRET")
+    .createHmac("sha256", config.apiSecret)
     .update(dataToSign)
     .digest("base64");
 
+  if (!config.apiKey || !config.apiSecret) {
+    throw new Error(
+      "Shopier API anahtarları henüz tanımlanmamıştır. Lütfen Yönetim Paneli > Sistem & Ödeme Ayarları sayfasından API Key ve API Secret bilgilerinizi kaydediniz."
+    );
+  }
+
   const fields: ShopierFormFields = {
-    API_key: config.apiKey || "DEMO_SHOPIER_KEY",
+    API_key: config.apiKey,
     website_index: config.websiteIndex || 1,
     platform_order_id,
     product_name: product_name.substring(0, 100),
