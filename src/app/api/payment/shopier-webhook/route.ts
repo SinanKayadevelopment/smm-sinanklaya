@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createProviderOrder } from "@/lib/morethanpanel";
-import { verifyShopierWebhookSignature } from "@/lib/shopier";
+import { verifyShopierWebhookSignature, verifyShopierOsbHash, decodeShopierOsbPayload } from "@/lib/shopier";
 
 /**
  * Shopier GET Ping / Test Kontrolü
@@ -19,44 +19,71 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     let platform_order_id = "";
-    let status = "";
+    let status = "success";
     let installment = "";
     let payment_id = "";
     let random_nr = "";
     let signature = "";
+    let isOsb = false;
+
+    let res = "";
+    let hash = "";
 
     const contentType = request.headers.get("content-type") || "";
 
     if (contentType.includes("application/x-www-form-urlencoded") || contentType.includes("multipart/form-data")) {
       const formData = await request.formData();
+      res = (formData.get("res") as string) || "";
+      hash = (formData.get("hash") as string) || "";
       platform_order_id = (formData.get("platform_order_id") as string) || (formData.get("order_id") as string) || "";
-      status = (formData.get("status") as string) || "";
+      status = (formData.get("status") as string) || "success";
       installment = (formData.get("installment") as string) || "";
       payment_id = (formData.get("payment_id") as string) || "";
       random_nr = (formData.get("random_nr") as string) || "";
       signature = (formData.get("signature") as string) || "";
     } else {
-      // JSON formatı (API testi veya simülasyon)
+      // JSON formatı
       const json = await request.json().catch(() => ({}));
+      res = json.res || "";
+      hash = json.hash || "";
       platform_order_id = json.platform_order_id || json.order_id || json.orderCode || "";
-      status = json.status || "";
+      status = json.status || "success";
       installment = json.installment ? String(json.installment) : "";
       payment_id = json.payment_id ? String(json.payment_id) : "";
       random_nr = json.random_nr ? String(json.random_nr) : "";
       signature = json.signature || "";
     }
 
+    // 1. Resmi Shopier OSB (res & hash) Kontrolü (PHP Kodunun Birebir TypeScript Karşılığı)
+    if (res && hash) {
+      isOsb = true;
+      const isHashValid = await verifyShopierOsbHash(res, hash);
+      if (!isHashValid) {
+        console.warn("Shopier OSB hash doğrulama uyuşmazlığı!");
+        // Shopier OSB doğrulaması başarısız
+        return new NextResponse("invalid hash", { status: 400 });
+      }
+
+      const osbData = decodeShopierOsbPayload(res);
+      if (osbData) {
+        console.log("Shopier OSB verisi başarıyla çözümlendi:", osbData);
+        // Müşterinin girdiği sipariş kodu customernote veya orderid içinde olabilir
+        platform_order_id = osbData.customernote || osbData.orderid || "";
+        status = "success";
+      }
+    }
+
     // Tarayıcı yönlendirmesi mi yoksa sunucudan sunucuya (OSB test / webhook) çağrı mı tespiti
     const secFetchDest = request.headers.get("sec-fetch-dest") || "";
     const acceptHeader = request.headers.get("accept") || "";
-    const isBrowserNavigation = secFetchDest === "document" || (acceptHeader.includes("text/html") && !acceptHeader.includes("*/*"));
+    const isBrowserNavigation = !isOsb && (secFetchDest === "document" || (acceptHeader.includes("text/html") && !acceptHeader.includes("*/*")));
 
     const origin = request.nextUrl.origin;
     const isLocal = origin.includes("localhost") || origin.includes("127.0.0.1");
     const baseUrl = isLocal ? origin : "https://yayincikral.com";
 
     // Eğer Shopier OSB panelinden parametresiz test ping'i geldiyse
-    if (!platform_order_id && !signature) {
+    if (!platform_order_id && !signature && !res) {
       console.log("Shopier OSB genel ping testi alındı.");
       return new NextResponse("success", {
         status: 200,
@@ -64,22 +91,33 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // İmza doğrulaması (Secret ayarlıysa kontrol eder, boşsa test modunda izin verir)
-    if (signature && random_nr && platform_order_id) {
+    // Standart callback imza doğrulaması
+    if (!isOsb && signature && random_nr && platform_order_id) {
       const isSignatureValid = await verifyShopierWebhookSignature(random_nr, platform_order_id, signature);
       if (!isSignatureValid) {
         console.warn(`Shopier Webhook İmza Uyarısı (Geçersiz imza)! Sipariş: ${platform_order_id}`);
-        // Canlıda güvenlik için reddet, ancak panel testi için logla
       }
     }
 
     // Siparişi veritabanından bul (orderCode ile eşleştir)
-    const order = await prisma.order.findUnique({
-      where: { orderCode: platform_order_id.trim().toUpperCase() },
-      include: {
-        package: true,
-      },
-    });
+    let order = null;
+    if (platform_order_id) {
+      const cleanCode = platform_order_id.trim().toUpperCase();
+      order = await prisma.order.findUnique({
+        where: { orderCode: cleanCode },
+        include: { package: true },
+      });
+
+      if (!order) {
+        const match = platform_order_id.match(/DST-\d+/i);
+        if (match) {
+          order = await prisma.order.findUnique({
+            where: { orderCode: match[0].toUpperCase() },
+            include: { package: true },
+          });
+        }
+      }
+    }
 
     // Durum başarısız bildirilmişse
     if (status && status.toLowerCase() !== "success") {

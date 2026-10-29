@@ -320,6 +320,41 @@ export async function verifyShopierWebhookSignature(
   }
 }
 
+/**
+ * Shopier OSB (Otomatik Sipariş Bildirimi) Hash Doğrulaması:
+ * PHP Karşılığı: hash_hmac('sha256', $_POST['res'] . $username, $key, false)
+ */
+export async function verifyShopierOsbHash(res: string, incomingHash: string): Promise<boolean> {
+  const config = await getShopierConfig();
+  const username = config.apiKey || "21cb1a38edac99d3e4b2e1c0c43f02e4";
+  const key = config.apiSecret || "07b8c8931dd1504f51e4711754ebe8f7";
+
+  try {
+    const computedHash = crypto
+      .createHmac("sha256", key)
+      .update(res + username)
+      .digest("hex");
+
+    return computedHash.toLowerCase() === (incomingHash || "").trim().toLowerCase();
+  } catch (err) {
+    console.error("Shopier OSB hash doğrulama hatası:", err);
+    return false;
+  }
+}
+
+/**
+ * Shopier OSB Base64 Verisini JSON olarak ayrıştırır
+ */
+export function decodeShopierOsbPayload(res: string): any {
+  try {
+    const decoded = Buffer.from(res, "base64").toString("utf-8");
+    return JSON.parse(decoded);
+  } catch (err) {
+    console.error("Shopier OSB payload decode hatası:", err);
+    return null;
+  }
+}
+
 function escapeHtml(str: string): string {
   return str
     .replace(/&/g, "&amp;")
