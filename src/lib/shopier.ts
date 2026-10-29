@@ -71,24 +71,35 @@ function toAscii(str: string): string {
 }
 
 /**
- * Shopier 509 hatasını önlemek için telefon numarasını tam 10 hane yapar.
- * (Başında 0 veya +90 olmadan, örn: 5331234567)
+ * Shopier için telefon numarasını ulusal formatta (05XXXXXXXXX, 11 hane) temizler.
  */
 function cleanPhoneNumber(phone: string): string {
   let digits = (phone || "").replace(/[^0-9]/g, "");
   if (digits.startsWith("90") && digits.length === 12) {
     digits = digits.substring(2);
   }
-  if (digits.startsWith("0") && digits.length === 11) {
-    digits = digits.substring(1);
+  if (!digits.startsWith("0")) {
+    digits = "0" + digits;
   }
-  if (digits.length > 10) {
-    digits = digits.slice(-10);
+  if (digits.length > 11) {
+    digits = digits.slice(-11);
   }
-  if (digits.length < 10) {
-    digits = "5551234567";
+  if (digits.length < 11) {
+    digits = "05331948396";
   }
   return digits;
+}
+
+/**
+ * Shopier 509 hatasını önlemek için e-posta adresini ASCII ve geçerli e-posta formatına zorlar.
+ */
+function cleanEmail(email: string): string {
+  const ascii = toAscii(email || "").replace(/\s+/g, "").toLowerCase();
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+  if (emailRegex.test(ascii)) {
+    return ascii;
+  }
+  return "musteri@yayincikral.com";
 }
 
 /**
@@ -163,6 +174,9 @@ export async function generateShopierPayment(params: ShopierPaymentParams): Prom
     );
   }
 
+  const cleanBuyerEmail = cleanEmail(params.customerEmail);
+  const safeAddress = billing_address.length < 5 ? "Turkiye Istanbul Merkez" : billing_address;
+
   const fields: ShopierFormFields = {
     API_key: config.apiKey,
     website_index: config.websiteIndex || 1,
@@ -171,15 +185,15 @@ export async function generateShopierPayment(params: ShopierPaymentParams): Prom
     product_type: 1, // 1 - Dijital/İndirilebilir
     buyer_name: buyer_name.substring(0, 50),
     buyer_surname: buyer_surname.substring(0, 50),
-    buyer_email: params.customerEmail.trim().substring(0, 100),
-    buyer_phone: cleanPhone, // Tam 10 hane, başında 0 veya +90 olmadan
-    buyer_account_age: 0,
-    buyer_id_nr: 0,
-    billing_address: billing_address.substring(0, 255),
+    buyer_email: cleanBuyerEmail.substring(0, 100),
+    buyer_phone: cleanPhone, // Başında 0 olan 11 haneli ulusal format
+    buyer_account_age: 1,
+    buyer_id_nr: 1,
+    billing_address: safeAddress.substring(0, 255),
     billing_city: billing_city.substring(0, 50),
     billing_country: "TR",
     billing_postcode: "34000",
-    shipping_address: billing_address.substring(0, 255),
+    shipping_address: safeAddress.substring(0, 255),
     shipping_city: billing_city.substring(0, 50),
     shipping_country: "TR",
     shipping_postcode: "34000",
