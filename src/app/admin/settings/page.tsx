@@ -14,6 +14,10 @@ import {
   Mail,
   ToggleLeft,
   ToggleRight,
+  BarChart3,
+  Activity,
+  Globe,
+  Sparkles,
 } from "lucide-react";
 
 interface BankAccount {
@@ -37,6 +41,10 @@ export default function AdminSettingsPage() {
   const [testMode, setTestMode] = useState(true);
   const [whatsapp, setWhatsapp] = useState("+90 533 194 83 96");
   const [supportEmail, setSupportEmail] = useState("destek@yayincikral.com");
+
+  // Google Analytics & Clarity Ayarları
+  const [gaId, setGaId] = useState("");
+  const [clarityId, setClarityId] = useState("");
 
   // Banka Hesapları
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
@@ -62,6 +70,8 @@ export default function AdminSettingsPage() {
         }
         if (data.settings.WHATSAPP_PHONE) setWhatsapp(data.settings.WHATSAPP_PHONE);
         if (data.settings.SUPPORT_EMAIL) setSupportEmail(data.settings.SUPPORT_EMAIL);
+        if (data.settings.GOOGLE_ANALYTICS_ID) setGaId(data.settings.GOOGLE_ANALYTICS_ID);
+        if (data.settings.MICROSOFT_CLARITY_ID) setClarityId(data.settings.MICROSOFT_CLARITY_ID);
       }
 
       const bankRes = await fetch("/api/admin/bank-accounts");
@@ -93,6 +103,8 @@ export default function AdminSettingsPage() {
         TEST_PAYMENT_MODE: testMode ? "true" : "false",
         WHATSAPP_PHONE: whatsapp.trim(),
         SUPPORT_EMAIL: supportEmail.trim(),
+        GOOGLE_ANALYTICS_ID: gaId.trim(),
+        MICROSOFT_CLARITY_ID: clarityId.trim(),
       };
 
       const res = await fetch("/api/admin/settings", {
@@ -165,12 +177,91 @@ export default function AdminSettingsPage() {
       <div>
         <h1 className="text-2xl font-black text-white">Sistem & Ödeme Ayarları</h1>
         <p className="text-xs text-gray-400 mt-1">
-          Tedarikçi API entegrasyonu, PayTR Sanal POS yapılandırması ve EFT/Havale banka hesapları.
+          Tedarikçi API entegrasyonu, PayTR Sanal POS, Google Analytics & Clarity takip kodları ve EFT/Havale banka hesapları.
         </p>
       </div>
 
       <form onSubmit={handleSaveSettings} className="space-y-6">
-        {/* 1. MoreThanPanel API Ayarları */}
+        {/* 1. Google Analytics & Microsoft Clarity Takip Kodları */}
+        <div className="p-6 rounded-3xl bg-[#0F172A] border border-gray-800 space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-gray-800">
+            <div className="flex items-center space-x-3">
+              <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400">
+                <BarChart3 className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-white">Site Trafik & Analitik Takip Kodları</h3>
+                <p className="text-xs text-gray-400">
+                  Google Analytics 4 ve Microsoft Clarity entegrasyonu. Girildiğinde sitenin &lt;head&gt; alanına otomatik eklenir.
+                </p>
+              </div>
+            </div>
+            <div className="hidden sm:flex items-center space-x-2 text-[11px] font-semibold">
+              <span className={`px-2.5 py-1 rounded-full border ${gaId ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-gray-800 text-gray-400 border-gray-700'}`}>
+                GA4: {gaId ? 'Aktif' : 'Boş'}
+              </span>
+              <span className={`px-2.5 py-1 rounded-full border ${clarityId ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-gray-800 text-gray-400 border-gray-700'}`}>
+                Clarity: {clarityId ? 'Aktif' : 'Boş'}
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 text-xs">
+            {/* Google Analytics ID */}
+            <div className="space-y-1.5 p-4 rounded-2xl bg-[#131D33] border border-gray-700/60">
+              <div className="flex items-center justify-between">
+                <label className="text-white font-bold flex items-center space-x-1.5">
+                  <Activity className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Google Analytics ID (G-XXXXXX)</span>
+                </label>
+                {gaId && (
+                  <span className="text-[10px] text-emerald-400 font-bold flex items-center space-x-1">
+                    <CheckCircle className="w-3 h-3" />
+                    <span>Entegre Edildi</span>
+                  </span>
+                )}
+              </div>
+              <input
+                type="text"
+                value={gaId}
+                onChange={(e) => setGaId(e.target.value)}
+                placeholder="Örn: G-ABC123XYZ0"
+                className="w-full bg-[#1E293B] border border-gray-700 rounded-xl px-4 py-2.5 text-white font-mono focus:outline-none focus:border-[#9146FF]"
+              />
+              <p className="text-[11px] text-gray-400 leading-relaxed">
+                Google Analytics 4 panelinden aldığınız Ölçüm Kimliği (Measurement ID). Ziyaretçi sayıları, sayfa görüntülenmeleri ve dönüşümleri anlık izler.
+              </p>
+            </div>
+
+            {/* Microsoft Clarity Proje Kodu */}
+            <div className="space-y-1.5 p-4 rounded-2xl bg-[#131D33] border border-gray-700/60">
+              <div className="flex items-center justify-between">
+                <label className="text-white font-bold flex items-center space-x-1.5">
+                  <Globe className="w-3.5 h-3.5 text-blue-400" />
+                  <span>Microsoft Clarity Proje Kodu</span>
+                </label>
+                {clarityId && (
+                  <span className="text-[10px] text-blue-400 font-bold flex items-center space-x-1">
+                    <CheckCircle className="w-3 h-3" />
+                    <span>Entegre Edildi</span>
+                  </span>
+                )}
+              </div>
+              <input
+                type="text"
+                value={clarityId}
+                onChange={(e) => setClarityId(e.target.value)}
+                placeholder="Örn: q7n38h19xy"
+                className="w-full bg-[#1E293B] border border-gray-700 rounded-xl px-4 py-2.5 text-white font-mono focus:outline-none focus:border-[#9146FF]"
+              />
+              <p className="text-[11px] text-gray-400 leading-relaxed">
+                Microsoft Clarity kontrol panelinizdeki Proje ID&apos;si. Kullanıcı oturum video kayıtları, tıklama ısı haritaları (Heatmaps) ve kaydırma analizleri sağlar.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* 2. MoreThanPanel API Ayarları */}
         <div className="p-6 rounded-3xl bg-[#0F172A] border border-gray-800 space-y-4">
           <div className="flex items-center space-x-3 pb-3 border-b border-gray-800">
             <div className="p-2.5 rounded-xl bg-purple-500/10 text-[#9146FF]">
@@ -214,7 +305,7 @@ export default function AdminSettingsPage() {
           </div>
         </div>
 
-        {/* 2. PayTR Sanal POS Ayarları */}
+        {/* 3. PayTR Sanal POS Ayarları */}
         <div className="p-6 rounded-3xl bg-[#0F172A] border border-gray-800 space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-gray-800">
             <div className="flex items-center space-x-3">
@@ -262,39 +353,39 @@ export default function AdminSettingsPage() {
             </div>
 
             <div>
-              <label className="block text-gray-400 mb-1 font-semibold">Mağaza Parolası (Merchant Key)</label>
+              <label className="block text-gray-400 mb-1 font-semibold">PayTR Mağaza Parolası (Merchant Key)</label>
               <input
                 type="password"
                 value={paytrKey}
                 onChange={(e) => setPaytrKey(e.target.value)}
-                placeholder="Merchant Key"
+                placeholder="Örn: X1y2Z3a4..."
                 className="w-full bg-[#1E293B] border border-gray-700 rounded-xl px-4 py-2.5 text-white font-mono focus:outline-none focus:border-[#9146FF]"
               />
             </div>
 
             <div>
-              <label className="block text-gray-400 mb-1 font-semibold">Mağaza Gizli Anahtarı (Merchant Salt)</label>
+              <label className="block text-gray-400 mb-1 font-semibold">PayTR Gizli Tuz (Merchant Salt)</label>
               <input
                 type="password"
                 value={paytrSalt}
                 onChange={(e) => setPaytrSalt(e.target.value)}
-                placeholder="Merchant Salt"
+                placeholder="Örn: aB3cD4..."
                 className="w-full bg-[#1E293B] border border-gray-700 rounded-xl px-4 py-2.5 text-white font-mono focus:outline-none focus:border-[#9146FF]"
               />
             </div>
           </div>
         </div>
 
-        {/* 3. İletişim Ayarları */}
+        {/* 4. İletişim & Destek Ayarları */}
         <div className="p-6 rounded-3xl bg-[#0F172A] border border-gray-800 space-y-4">
           <div className="flex items-center space-x-3 pb-3 border-b border-gray-800">
             <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400">
               <Smartphone className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-white">İletişim & Destek Kanalları</h3>
+              <h3 className="text-sm font-bold text-white">İletişim & Canlı Destek Kanalları</h3>
               <p className="text-xs text-gray-400">
-                Müşterilerin 7/24 erişebileceği WhatsApp ve bildirim kanalları.
+                Sitedeki yüzen destek butonu ve bildirimlerde gösterilecek resmi iletişim hatları.
               </p>
             </div>
           </div>
@@ -335,7 +426,7 @@ export default function AdminSettingsPage() {
         </div>
       </form>
 
-      {/* 4. EFT / Havale Banka Hesapları Yönetimi */}
+      {/* 5. EFT / Havale Banka Hesapları Yönetimi */}
       <div className="p-6 rounded-3xl bg-[#0F172A] border border-gray-800 space-y-6">
         <div className="flex items-center space-x-3 pb-3 border-b border-gray-800">
           <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-400">

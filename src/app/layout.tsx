@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
+import { Suspense } from "react";
+import Script from "next/script";
 import "./globals.css";
+import AnalyticsTracker from "@/components/AnalyticsTracker";
+import TrackingScripts from "@/components/TrackingScripts";
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -79,7 +83,25 @@ export default function RootLayout({
 }) {
   return (
     <html lang="tr" className={`${jakarta.variable} font-sans h-full antialiased`}>
+      <head>
+        {/* Microsoft Clarity Resmi İzleme Kodu */}
+        <Script id="microsoft-clarity" strategy="afterInteractive">
+          {`
+            (function(c,l,a,r,i,t,y){
+                c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+                t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+                y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+            })(window, document, "clarity", "script", "z5g2hnll19");
+          `}
+        </Script>
+        <Suspense fallback={null}>
+          <TrackingScripts />
+        </Suspense>
+      </head>
       <body className="min-h-full flex flex-col bg-[#F8F9FD] text-[#1E1B4B] selection:bg-[#7C1CF5] selection:text-white">
+        <Suspense fallback={null}>
+          <AnalyticsTracker />
+        </Suspense>
         {children}
       </body>
     </html>

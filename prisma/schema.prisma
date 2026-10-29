@@ -55,6 +55,7 @@ model Package {
   isActive          Boolean   @default(true)
   sortOrder         Int       @default(0)
   orders            Order[]
+  pageViews         PageView[]
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 }
@@ -113,4 +114,23 @@ model Setting {
   value     String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+
+model PageView {
+  id          String   @id @default(cuid())
+  path        String
+  packageId   String?
+  package     Package? @relation(fields: [packageId], references: [id], onDelete: SetNull)
+  eventType   String   @default("PAGE_VIEW") // "PAGE_VIEW" | "CHECKOUT_STEP" | "PURCHASE"
+  visitorId   String?
+  ip          String?
+  userAgent   String?
+  referer     String?
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([packageId])
+  @@index([eventType])
+  @@index([path])
 }
