@@ -78,7 +78,7 @@ export default function OrderCreatePage() {
   } | null>(null);
   const [couponError, setCouponError] = useState<string | null>(null);
   const [couponLoading, setCouponLoading] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<"ONLINE_PAYTR" | "EFT_HAVALE" | "MOBIL_ODEME">(
+  const [paymentMethod, setPaymentMethod] = useState<"ONLINE_SHOPIER" | "ONLINE_PAYTR" | "EFT_HAVALE" | "MOBIL_ODEME">(
     "ONLINE_PAYTR"
   );
 
@@ -173,6 +173,22 @@ export default function OrderCreatePage() {
       const data = await res.json();
       if (res.ok && data.success) {
         setCreatedOrder(data.order);
+        if (data.shopier?.fields && (paymentMethod === "ONLINE_SHOPIER" || paymentMethod === "ONLINE_PAYTR")) {
+          const form = document.createElement("form");
+          form.method = "POST";
+          form.action = data.shopier.actionUrl || "https://www.shopier.com/ShowProduct/api_pay4.php";
+          form.style.display = "none";
+          for (const [k, v] of Object.entries(data.shopier.fields)) {
+            const input = document.createElement("input");
+            input.type = "hidden";
+            input.name = k;
+            input.value = String(v);
+            form.appendChild(input);
+          }
+          document.body.appendChild(form);
+          form.submit();
+          return;
+        }
         setStep(4);
       } else {
         alert(data.message || "Sipariş oluşturulamadı.");
@@ -608,9 +624,9 @@ export default function OrderCreatePage() {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {/* 1. Online Ödeme */}
                   <div
-                    onClick={() => setPaymentMethod("ONLINE_PAYTR")}
+                    onClick={() => setPaymentMethod("ONLINE_SHOPIER")}
                     className={`p-4 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between ${
-                      paymentMethod === "ONLINE_PAYTR"
+                      paymentMethod === "ONLINE_SHOPIER" || paymentMethod === "ONLINE_PAYTR"
                         ? "bg-[#FAF5FF] border-[#7C1CF5] shadow-[0_4px_20px_rgba(124,28,245,0.18)]"
                         : "bg-white border-[#EDE9FE] hover:border-[#7C1CF5]/50"
                     }`}
@@ -619,19 +635,19 @@ export default function OrderCreatePage() {
                       <CreditCard className="w-5 h-5 text-[#7C1CF5]" />
                       <div
                         className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                          paymentMethod === "ONLINE_PAYTR"
+                          paymentMethod === "ONLINE_SHOPIER" || paymentMethod === "ONLINE_PAYTR"
                             ? "border-[#7C1CF5] bg-[#7C1CF5]"
                             : "border-gray-300"
                         }`}
                       >
-                        {paymentMethod === "ONLINE_PAYTR" && (
+                        {(paymentMethod === "ONLINE_SHOPIER" || paymentMethod === "ONLINE_PAYTR") && (
                           <div className="w-1.5 h-1.5 rounded-full bg-white" />
                         )}
                       </div>
                     </div>
                     <div>
                       <h4 className="text-xs font-black text-[#1E1B4B] mb-0.5">Online Ödeme</h4>
-                      <p className="text-[11px] text-gray-500 font-medium">Kredi / Banka Kartı (PayTR 3D)</p>
+                      <p className="text-[11px] text-gray-500 font-medium">Kredi / Banka Kartı (Shopier 3D Secure)</p>
                     </div>
                   </div>
 
@@ -858,10 +874,10 @@ export default function OrderCreatePage() {
                     <div className="flex items-center justify-between pb-3 border-b border-[#EDE9FE]">
                       <div className="flex items-center space-x-2">
                         <Lock className="w-4 h-4 text-[#7C1CF5]" />
-                        <span className="text-xs font-bold text-[#1E1B4B]">PayTR 3D Secure Güvenli Ödeme Ekranı</span>
+                        <span className="text-xs font-bold text-[#1E1B4B]">Shopier 3D Secure Güvenli Ödeme Ekranı</span>
                       </div>
                       <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-[#F3E8FF] text-[#7C1CF5] font-black">
-                        Geliştirme & Test Modu
+                        Shopier 3D Secure Doğrulandı
                       </span>
                     </div>
 
@@ -877,11 +893,20 @@ export default function OrderCreatePage() {
                       </div>
                     </div>
 
+                    <a
+                      href={`/api/payment/shopier-pay?orderCode=${createdOrder.orderCode}`}
+                      className="btn-theme w-full py-4 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center space-x-2 font-black shadow-lg shadow-purple-600/30 mb-2"
+                    >
+                      <CreditCard className="w-4 h-4" />
+                      <span>Shopier ile Güvenli Öde ({createdOrder.totalAmount.toFixed(2)} ₺)</span>
+                      <ArrowRight className="w-4 h-4 ml-1" />
+                    </a>
+
                     <button
                       type="button"
                       onClick={handleConfirmPayment}
                       disabled={paymentLoading}
-                      className="btn-theme w-full py-4 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center space-x-2 disabled:opacity-50 font-black"
+                      className="w-full py-2.5 rounded-xl text-[11px] text-gray-500 hover:text-gray-700 underline flex items-center justify-center space-x-1 font-medium transition"
                     >
                       <CreditCard className="w-4 h-4" />
                       <span>

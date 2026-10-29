@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { generatePayTrToken } from "@/lib/paytr";
+import { generateShopierPayment } from "@/lib/shopier";
 
 function generateOrderCode(): string {
   const randomNum = Math.floor(100000 + Math.random() * 900000);
@@ -20,7 +21,7 @@ export async function POST(request: NextRequest) {
       companyName,
       taxNumber,
       couponCode,
-      paymentMethod = "ONLINE_PAYTR",
+      paymentMethod = "ONLINE_SHOPIER",
     } = body;
 
     if (!packageId || !targetLink || !customerName || !customerEmail || !customerPhone) {
@@ -62,9 +63,6 @@ export async function POST(request: NextRequest) {
     const totalAmount = Number((pkg.price - discountAmount).toFixed(2));
     const orderCode = generateOrderCode();
 
-    // Sipariş Başlangıç Durumları
-    const initialOrderStatus = paymentMethod === "EFT_HAVALE" ? "WAITING" : "WAITING";
-
     const order = await prisma.order.create({
       data: {
         orderCode,
@@ -81,7 +79,7 @@ export async function POST(request: NextRequest) {
         totalAmount,
         paymentMethod,
         paymentStatus: "PENDING",
-        orderStatus: initialOrderStatus,
+        orderStatus: "WAITING",
       },
       include: {
         package: {
@@ -100,38 +98,59 @@ export async function POST(request: NextRequest) {
     const forwardedHeader = request.headers.get("x-forwarded-for");
     const userIp = forwardedHeader ? forwardedHeader.split(",")[0].trim() : "127.0.0.1";
 
+    let shopierData: any = null;
     let paytrData: any = null;
     let bankAccounts: any = null;
 
-    if (paymentMethod === "ONLINE_PAYTR") {
-      const tokenRes = await generatePayTrToken({
-        orderCode: order.orderCode,
-        totalAmount: order.totalAmount,
-        customerEmail: order.customerEmail,
-        customerName: order.customerName,
-        customerPhone: order.customerPhone,
-        packageName: `${pkg.category.platform.name} - ${pkg.name}`,
-        userIp,
-      });
-
-      if (tokenRes.status === "success" && tokenRes.token) {
-        // Token'ı siparişe kaydet
-        await prisma.order.update({
-          where: { id: order.id },
-          data: { paytrToken: tokenRes.token },
+    // Online Ödeme için Shopier verilerini hazırla (ONLINE_SHOPIER veya ONLINE_PAYTR)
+    if (paymentMethod === "ONLINE_SHOPIER" || paymentMethod === "ONLINE_PAYTR") {
+      try {
+        const packageName = `${pkg.category.platform.name} - ${pkg.name}`;
+        const shopierPayment = await generateShopierPayment({
+          orderCode: order.orderCode,
+          totalAmount: order.totalAmount,
+          customerName: order.customerName,
+          customerEmail: order.customerEmail,
+          customerPhone: order.customerPhone,
+          packageName,
+          billingAddress: companyName ? companyName.trim() : "Türkiye",
+          billingCity: "İstanbul",
         });
 
-        paytrData = {
-          token: tokenRes.token,
-          isTestMode: tokenRes.isTestMode ?? false,
+        shopierData = {
+          actionUrl: shopierPayment.actionUrl,
+          fields: shopierPayment.fields,
+          autoSubmitUrl: `/api/payment/shopier-pay?orderCode=${order.orderCode}`,
         };
-      } else {
-        console.warn("PayTR token üretilemedi:", tokenRes.reason);
-        // Geliştirme modu için test token sağla
-        paytrData = {
-          token: `paytr_fallback_token_${order.orderCode}`,
-          isTestMode: true,
-        };
+      } catch (err) {
+        console.error("Shopier parametre oluşturma hatası:", err);
+      }
+
+      // Geriye dönük PayTR token'ı da üret
+      try {
+        const tokenRes = await generatePayTrToken({
+          orderCode: order.orderCode,
+          totalAmount: order.totalAmount,
+          customerEmail: order.customerEmail,
+          customerName: order.customerName,
+          customerPhone: order.customerPhone,
+          packageName: `${pkg.category.platform.name} - ${pkg.name}`,
+          userIp,
+        });
+
+        if (tokenRes.status === "success" && tokenRes.token) {
+          await prisma.order.update({
+            where: { id: order.id },
+            data: { paytrToken: tokenRes.token },
+          });
+
+          paytrData = {
+            token: tokenRes.token,
+            isTestMode: tokenRes.isTestMode ?? false,
+          };
+        }
+      } catch (err) {
+        console.warn("PayTR token üretimi atlandı:", err);
       }
     } else if (paymentMethod === "EFT_HAVALE") {
       bankAccounts = await prisma.bankAccount.findMany({
@@ -144,6 +163,7 @@ export async function POST(request: NextRequest) {
       success: true,
       message: "Sipariş kaydı başarıyla oluşturuldu.",
       order,
+      shopier: shopierData,
       paytr: paytrData,
       bankAccounts,
     });

@@ -18,6 +18,9 @@ import {
   Activity,
   Globe,
   Sparkles,
+  Copy,
+  Check,
+  Zap,
 } from "lucide-react";
 
 interface BankAccount {
@@ -35,10 +38,20 @@ export default function AdminSettingsPage() {
   // Form Ayarları
   const [mtpUrl, setMtpUrl] = useState("https://morethanpanel.com/api/v2");
   const [mtpKey, setMtpKey] = useState("");
+  
+  // PayTR Ayarları
   const [paytrId, setPaytrId] = useState("");
   const [paytrKey, setPaytrKey] = useState("");
   const [paytrSalt, setPaytrSalt] = useState("");
   const [testMode, setTestMode] = useState(true);
+
+  // Shopier Sanal POS Ayarları
+  const [shopierApiKey, setShopierApiKey] = useState("");
+  const [shopierApiSecret, setShopierApiSecret] = useState("");
+  const [shopierWebsiteIndex, setShopierWebsiteIndex] = useState("1");
+  const [copiedWebhook, setCopiedWebhook] = useState(false);
+
+  // İletişim Ayarları
   const [whatsapp, setWhatsapp] = useState("+90 533 194 83 96");
   const [supportEmail, setSupportEmail] = useState("destek@yayincikral.com");
 
@@ -68,6 +81,11 @@ export default function AdminSettingsPage() {
         if (data.settings.TEST_PAYMENT_MODE !== undefined) {
           setTestMode(data.settings.TEST_PAYMENT_MODE === "true");
         }
+        // Shopier
+        if (data.settings.SHOPIER_API_KEY) setShopierApiKey(data.settings.SHOPIER_API_KEY);
+        if (data.settings.SHOPIER_API_SECRET) setShopierApiSecret(data.settings.SHOPIER_API_SECRET);
+        if (data.settings.SHOPIER_WEBSITE_INDEX) setShopierWebsiteIndex(data.settings.SHOPIER_WEBSITE_INDEX);
+
         if (data.settings.WHATSAPP_PHONE) setWhatsapp(data.settings.WHATSAPP_PHONE);
         if (data.settings.SUPPORT_EMAIL) setSupportEmail(data.settings.SUPPORT_EMAIL);
         if (data.settings.GOOGLE_ANALYTICS_ID) setGaId(data.settings.GOOGLE_ANALYTICS_ID);
@@ -101,6 +119,9 @@ export default function AdminSettingsPage() {
         PAYTR_MERCHANT_KEY: paytrKey.trim(),
         PAYTR_MERCHANT_SALT: paytrSalt.trim(),
         TEST_PAYMENT_MODE: testMode ? "true" : "false",
+        SHOPIER_API_KEY: shopierApiKey.trim(),
+        SHOPIER_API_SECRET: shopierApiSecret.trim(),
+        SHOPIER_WEBSITE_INDEX: shopierWebsiteIndex.trim() || "1",
         WHATSAPP_PHONE: whatsapp.trim(),
         SUPPORT_EMAIL: supportEmail.trim(),
         GOOGLE_ANALYTICS_ID: gaId.trim(),
@@ -120,6 +141,13 @@ export default function AdminSettingsPage() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const copyShopierWebhook = () => {
+    const url = "https://yayincikral.com/api/payment/shopier-webhook";
+    navigator.clipboard.writeText(url);
+    setCopiedWebhook(true);
+    setTimeout(() => setCopiedWebhook(false), 2500);
   };
 
   const handleAddBank = async (e: React.FormEvent) => {
@@ -177,12 +205,119 @@ export default function AdminSettingsPage() {
       <div>
         <h1 className="text-2xl font-black text-white">Sistem & Ödeme Ayarları</h1>
         <p className="text-xs text-gray-400 mt-1">
-          Tedarikçi API entegrasyonu, PayTR Sanal POS, Google Analytics & Clarity takip kodları ve EFT/Havale banka hesapları.
+          Shopier Sanal POS (api_pay4.php), Tedarikçi API entegrasyonu, Google Analytics & Clarity takip kodları ve EFT/Havale banka hesapları.
         </p>
       </div>
 
       <form onSubmit={handleSaveSettings} className="space-y-6">
-        {/* 1. Google Analytics & Microsoft Clarity Takip Kodları */}
+        {/* 1. Resmi Shopier 3D Secure Sanal POS (api_pay4.php) */}
+        <div className="p-6 rounded-3xl bg-gradient-to-br from-[#0F172A] to-[#141b2d] border border-orange-500/30 shadow-xl space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-gray-800 gap-3">
+            <div className="flex items-center space-x-3">
+              <div className="p-2.5 rounded-xl bg-orange-500/15 text-orange-400 shadow-sm">
+                <CreditCard className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center space-x-2">
+                  <h3 className="text-sm font-bold text-white">Shopier 3D Secure Sanal POS (api_pay4.php)</h3>
+                  <span className="px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-400 text-[10px] font-black border border-orange-500/20">
+                    Resmi Entegrasyon
+                  </span>
+                </div>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  yayincikral.com için onaylanan Shopier hesabınızın API Key, Secret ve Webhook yapılandırması.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2 text-[11px] font-bold">
+              <span className={`px-2.5 py-1 rounded-full border ${shopierApiKey && shopierApiSecret ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'}`}>
+                {shopierApiKey && shopierApiSecret ? 'Shopier: Aktif' : 'Shopier: Yapılandırılmadı'}
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+            {/* API Key */}
+            <div className="space-y-1.5">
+              <label className="block text-gray-300 font-bold">Shopier API Kullanıcı (API Key)</label>
+              <input
+                type="text"
+                value={shopierApiKey}
+                onChange={(e) => setShopierApiKey(e.target.value)}
+                placeholder="Örn: 98a7bc..."
+                className="w-full bg-[#1E293B] border border-gray-700 rounded-xl px-4 py-2.5 text-white font-mono focus:outline-none focus:border-orange-500 transition"
+              />
+              <span className="text-[10px] text-gray-500 block">Shopier panelindeki genel anahtarınız</span>
+            </div>
+
+            {/* API Secret */}
+            <div className="space-y-1.5">
+              <label className="block text-gray-300 font-bold">Shopier API Şifre (API Secret)</label>
+              <input
+                type="password"
+                value={shopierApiSecret}
+                onChange={(e) => setShopierApiSecret(e.target.value)}
+                placeholder="Örn: 4321fedc..."
+                className="w-full bg-[#1E293B] border border-gray-700 rounded-xl px-4 py-2.5 text-white font-mono focus:outline-none focus:border-orange-500 transition"
+              />
+              <span className="text-[10px] text-gray-500 block">HMAC-SHA256 imzası için gizli şifre</span>
+            </div>
+
+            {/* Website Index */}
+            <div className="space-y-1.5">
+              <label className="block text-gray-300 font-bold">Shopier Website Index (Varsayılan: 1)</label>
+              <input
+                type="number"
+                value={shopierWebsiteIndex}
+                onChange={(e) => setShopierWebsiteIndex(e.target.value)}
+                placeholder="1"
+                min="1"
+                className="w-full bg-[#1E293B] border border-gray-700 rounded-xl px-4 py-2.5 text-white font-mono focus:outline-none focus:border-orange-500 transition"
+              />
+              <span className="text-[10px] text-gray-500 block">Shopier mağaza web sitesi sıra numarası</span>
+            </div>
+          </div>
+
+          {/* Geri Dönüş URL'si (Webhook / Callback URL) Kutusu */}
+          <div className="p-4 rounded-2xl bg-[#131D33] border border-orange-500/20 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-orange-400 flex items-center space-x-1.5">
+                <Zap className="w-3.5 h-3.5" />
+                <span>Shopier Geri Dönüş URL (Callback / Webhook URL)</span>
+              </span>
+              <span className="text-[10px] text-gray-400">Entegrasyonlar sayfasında tanımlayınız</span>
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 rounded-xl bg-[#0B0F19] border border-gray-800">
+              <span className="font-mono text-xs text-purple-300 break-all select-all font-bold">
+                https://yayincikral.com/api/payment/shopier-webhook
+              </span>
+              <button
+                type="button"
+                onClick={copyShopierWebhook}
+                className="px-4 py-2 rounded-lg bg-orange-600/20 hover:bg-orange-600/30 border border-orange-500/30 text-orange-400 text-xs font-bold transition flex items-center justify-center space-x-1.5 shrink-0"
+              >
+                {copiedWebhook ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    <span className="text-emerald-400">Kopyalandı!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Adresi Kopyala</span>
+                  </>
+                )}
+              </button>
+            </div>
+            <p className="text-[11px] text-gray-400 leading-relaxed">
+              Shopier yönetim panelinizde <strong>Ayarlar &gt; Webhook / Geri Dönüş URL</strong> alanına bu adresi yapıştırınız. Müşteri ödemeyi tamamladığı anda Shopier bu adrese otomatik bildirim gönderir; sistem ödemeyi <strong>&apos;PAID&apos;</strong> yapar, tedarik siparişini MoreThanPanel&apos;e iletir ve müşteriyi <strong>/siparis-basarili</strong> sayfasına aktarır.
+            </p>
+          </div>
+        </div>
+
+        {/* 2. Site Trafik & Analitik Takip Kodları */}
         <div className="p-6 rounded-3xl bg-[#0F172A] border border-gray-800 space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-gray-800">
             <div className="flex items-center space-x-3">
@@ -229,7 +364,7 @@ export default function AdminSettingsPage() {
                 className="w-full bg-[#1E293B] border border-gray-700 rounded-xl px-4 py-2.5 text-white font-mono focus:outline-none focus:border-[#9146FF]"
               />
               <p className="text-[11px] text-gray-400 leading-relaxed">
-                Google Analytics 4 panelinden aldığınız Ölçüm Kimliği (Measurement ID). Ziyaretçi sayıları, sayfa görüntülenmeleri ve dönüşümleri anlık izler.
+                Google Analytics 4 panelinden aldığınız Ölçüm Kimliği. Ziyaretçi sayıları, sayfa görüntülenmeleri ve dönüşümleri anlık izler.
               </p>
             </div>
 
@@ -251,17 +386,17 @@ export default function AdminSettingsPage() {
                 type="text"
                 value={clarityId}
                 onChange={(e) => setClarityId(e.target.value)}
-                placeholder="Örn: q7n38h19xy"
+                placeholder="Örn: z5g2hnll19"
                 className="w-full bg-[#1E293B] border border-gray-700 rounded-xl px-4 py-2.5 text-white font-mono focus:outline-none focus:border-[#9146FF]"
               />
               <p className="text-[11px] text-gray-400 leading-relaxed">
-                Microsoft Clarity kontrol panelinizdeki Proje ID&apos;si. Kullanıcı oturum video kayıtları, tıklama ısı haritaları (Heatmaps) ve kaydırma analizleri sağlar.
+                Microsoft Clarity kontrol panelinizdeki Proje ID&apos;si. Oturum kayıtları ve ısı haritaları sağlar.
               </p>
             </div>
           </div>
         </div>
 
-        {/* 2. MoreThanPanel API Ayarları */}
+        {/* 3. MoreThanPanel API Ayarları */}
         <div className="p-6 rounded-3xl bg-[#0F172A] border border-gray-800 space-y-4">
           <div className="flex items-center space-x-3 pb-3 border-b border-gray-800">
             <div className="p-2.5 rounded-xl bg-purple-500/10 text-[#9146FF]">
@@ -305,7 +440,7 @@ export default function AdminSettingsPage() {
           </div>
         </div>
 
-        {/* 3. PayTR Sanal POS Ayarları */}
+        {/* 4. PayTR Sanal POS Ayarları (Yedek) */}
         <div className="p-6 rounded-3xl bg-[#0F172A] border border-gray-800 space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-gray-800">
             <div className="flex items-center space-x-3">
@@ -313,9 +448,9 @@ export default function AdminSettingsPage() {
                 <CreditCard className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-white">PayTR 3D Secure Sanal POS</h3>
+                <h3 className="text-sm font-bold text-white">PayTR 3D Secure Sanal POS (Yedek POS)</h3>
                 <p className="text-xs text-gray-400">
-                  Kredi ve banka kartı ödemeleri için PayTR mağaza bilgileri.
+                  Kredi ve banka kartı ödemeleri için alternatif PayTR mağaza bilgileri.
                 </p>
               </div>
             </div>
@@ -325,7 +460,7 @@ export default function AdminSettingsPage() {
               onClick={() => setTestMode(!testMode)}
               className="flex items-center space-x-2 cursor-pointer p-2 rounded-xl bg-[#1E293B] border border-gray-700"
             >
-              <span className="text-xs font-semibold text-gray-300">Test Modu (Simülasyon):</span>
+              <span className="text-xs font-semibold text-gray-300">Test Modu:</span>
               {testMode ? (
                 <span className="text-xs font-bold text-emerald-400 flex items-center space-x-1">
                   <span>AÇIK</span>
@@ -376,7 +511,7 @@ export default function AdminSettingsPage() {
           </div>
         </div>
 
-        {/* 4. İletişim & Destek Ayarları */}
+        {/* 5. İletişim & Destek Ayarları */}
         <div className="p-6 rounded-3xl bg-[#0F172A] border border-gray-800 space-y-4">
           <div className="flex items-center space-x-3 pb-3 border-b border-gray-800">
             <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400">
@@ -418,7 +553,7 @@ export default function AdminSettingsPage() {
           <button
             type="submit"
             disabled={saving}
-            className="py-3 px-8 rounded-xl bg-gradient-to-r from-[#9146FF] to-blue-600 hover:opacity-95 text-white font-bold text-xs uppercase tracking-wider transition shadow-lg shadow-purple-600/30 flex items-center space-x-2"
+            className="py-3 px-8 rounded-xl bg-gradient-to-r from-orange-500 via-[#9146FF] to-blue-600 hover:opacity-95 text-white font-bold text-xs uppercase tracking-wider transition shadow-lg shadow-purple-600/30 flex items-center space-x-2"
           >
             <Save className="w-4 h-4" />
             <span>{saving ? "Kaydediliyor..." : "Tüm Ayarları Kaydet"}</span>
@@ -426,7 +561,7 @@ export default function AdminSettingsPage() {
         </div>
       </form>
 
-      {/* 5. EFT / Havale Banka Hesapları Yönetimi */}
+      {/* 6. EFT / Havale Banka Hesapları Yönetimi */}
       <div className="p-6 rounded-3xl bg-[#0F172A] border border-gray-800 space-y-6">
         <div className="flex items-center space-x-3 pb-3 border-b border-gray-800">
           <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-400">
