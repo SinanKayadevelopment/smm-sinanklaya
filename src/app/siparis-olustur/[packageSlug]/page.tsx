@@ -79,7 +79,7 @@ export default function OrderCreatePage() {
   const [couponError, setCouponError] = useState<string | null>(null);
   const [couponLoading, setCouponLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"ONLINE_SHOPIER" | "ONLINE_PAYTR" | "EFT_HAVALE" | "MOBIL_ODEME">(
-    "ONLINE_PAYTR"
+    "ONLINE_SHOPIER"
   );
 
   // Adım 4: Sipariş Sonucu / Ödeme Ekranı

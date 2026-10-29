@@ -197,7 +197,7 @@ function OrdersContent() {
               className="w-full bg-[#1E293B] border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none"
             >
               <option value="ALL">Tüm Yöntemler</option>
-              <option value="ONLINE_PAYTR">Online (PayTR 3D)</option>
+              <option value="ONLINE_SHOPIER">Online (Shopier 3D Secure)</option>
               <option value="EFT_HAVALE">EFT / Havale</option>
               <option value="MOBIL_ODEME">Mobil Ödeme</option>
             </select>
@@ -290,8 +290,8 @@ function OrdersContent() {
                           {ord.totalAmount.toFixed(2)} ₺
                         </div>
                         <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-gray-400 font-medium">
-                          {ord.paymentMethod === "ONLINE_PAYTR"
-                            ? "PayTR Online"
+                          {ord.paymentMethod === "ONLINE_SHOPIER" || ord.paymentMethod === "ONLINE_PAYTR"
+                            ? "Shopier 3D"
                             : ord.paymentMethod === "EFT_HAVALE"
                             ? "EFT / Havale"
                             : "Mobil Ödeme"}

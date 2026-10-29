@@ -31,7 +31,10 @@ export async function GET(request: NextRequest) {
     }
 
     if (paymentMethod !== "ALL") {
-      where.paymentMethod = paymentMethod;
+      where.paymentMethod =
+        paymentMethod === "ONLINE_SHOPIER"
+          ? { in: ["ONLINE_SHOPIER", "ONLINE_PAYTR"] }
+          : paymentMethod;
     }
 
     const orders = await prisma.order.findMany({
