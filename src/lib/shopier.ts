@@ -49,6 +49,49 @@ export interface ShopierFormFields {
 }
 
 /**
+ * Türkçe karakterleri Shopier API uyumlu ASCII formatına dönüştürür.
+ * (Shopier api_pay4.php Türkçe karakterlerde 509 hatası verebilmektedir)
+ */
+function toAscii(str: string): string {
+  if (!str) return "";
+  return str
+    .replace(/ğ/g, "g")
+    .replace(/Ğ/g, "G")
+    .replace(/ü/g, "u")
+    .replace(/Ü/g, "U")
+    .replace(/ş/g, "s")
+    .replace(/Ş/g, "S")
+    .replace(/ı/g, "i")
+    .replace(/İ/g, "I")
+    .replace(/ö/g, "o")
+    .replace(/Ö/g, "O")
+    .replace(/ç/g, "c")
+    .replace(/Ç/g, "C")
+    .replace(/[^a-zA-Z0-9\s.,\-_]/g, "");
+}
+
+/**
+ * Shopier 509 hatasını önlemek için telefon numarasını tam 10 hane yapar.
+ * (Başında 0 veya +90 olmadan, örn: 5331234567)
+ */
+function cleanPhoneNumber(phone: string): string {
+  let digits = (phone || "").replace(/[^0-9]/g, "");
+  if (digits.startsWith("90") && digits.length === 12) {
+    digits = digits.substring(2);
+  }
+  if (digits.startsWith("0") && digits.length === 11) {
+    digits = digits.substring(1);
+  }
+  if (digits.length > 10) {
+    digits = digits.slice(-10);
+  }
+  if (digits.length < 10) {
+    digits = "5551234567";
+  }
+  return digits;
+}
+
+/**
  * Veritabanından veya ortam değişkenlerinden Shopier API ayarlarını çeker.
  */
 export async function getShopierConfig(): Promise<ShopierConfig> {
@@ -85,16 +128,19 @@ export async function generateShopierPayment(params: ShopierPaymentParams): Prom
 }> {
   const config = await getShopierConfig();
 
-  // İsim ve soyismi ayır
-  const nameParts = (params.customerName || "Değerli Müşteri").trim().split(" ");
-  const buyer_name = nameParts.length > 1 ? nameParts.slice(0, -1).join(" ") : nameParts[0];
-  const buyer_surname = nameParts.length > 1 ? nameParts[nameParts.length - 1] : "Kullanıcı";
+  // İsim ve soyismi ayır & ASCII temizliği yap
+  const nameParts = (params.customerName || "Degerli Musteri").trim().split(" ");
+  const rawBuyerName = nameParts.length > 1 ? nameParts.slice(0, -1).join(" ") : nameParts[0];
+  const rawBuyerSurname = nameParts.length > 1 ? nameParts[nameParts.length - 1] : "Kullanici";
 
-  // Telefon numarasını temizle (Sadece rakamlar veya standart format)
-  let cleanPhone = params.customerPhone.replace(/[^0-9+]/g, "").trim();
-  if (!cleanPhone.startsWith("+") && !cleanPhone.startsWith("0")) {
-    cleanPhone = "0" + cleanPhone;
-  }
+  const buyer_name = toAscii(rawBuyerName).trim() || "Musteri";
+  const buyer_surname = toAscii(rawBuyerSurname).trim() || "Kullanici";
+  const product_name = toAscii(params.packageName).trim() || "Hizmet Paketi";
+
+  const cleanPhone = cleanPhoneNumber(params.customerPhone);
+
+  const billing_address = toAscii(params.billingAddress || "Turkiye").trim() || "Turkiye";
+  const billing_city = toAscii(params.billingCity || "Istanbul").trim() || "Istanbul";
 
   // 6 haneli rastgele sayı
   const random_nr = Math.floor(100000 + Math.random() * 900000);
@@ -115,20 +161,20 @@ export async function generateShopierPayment(params: ShopierPaymentParams): Prom
     API_key: config.apiKey || "DEMO_SHOPIER_KEY",
     website_index: config.websiteIndex || 1,
     platform_order_id,
-    product_name: params.packageName.substring(0, 100),
+    product_name: product_name.substring(0, 100),
     product_type: 1, // 1 - Dijital/İndirilebilir
     buyer_name: buyer_name.substring(0, 50),
     buyer_surname: buyer_surname.substring(0, 50),
-    buyer_email: params.customerEmail.substring(0, 100),
-    buyer_phone: cleanPhone.substring(0, 20),
+    buyer_email: params.customerEmail.trim().substring(0, 100),
+    buyer_phone: cleanPhone, // Tam 10 hane, başında 0 veya +90 olmadan
     buyer_account_age: 0,
     buyer_id_nr: 0,
-    billing_address: (params.billingAddress || "Türkiye").substring(0, 255),
-    billing_city: (params.billingCity || "İstanbul").substring(0, 50),
+    billing_address: billing_address.substring(0, 255),
+    billing_city: billing_city.substring(0, 50),
     billing_country: "TR",
     billing_postcode: "34000",
-    shipping_address: (params.billingAddress || "Türkiye").substring(0, 255),
-    shipping_city: (params.billingCity || "İstanbul").substring(0, 50),
+    shipping_address: billing_address.substring(0, 255),
+    shipping_city: billing_city.substring(0, 50),
     shipping_country: "TR",
     shipping_postcode: "34000",
     total_order_value,
@@ -276,4 +322,3 @@ function escapeHtml(str: string): string {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 }
-
