@@ -147,3 +147,4 @@ export async function POST(request: NextRequest) {
     return new NextResponse("Sunucu hatası oluştu.", { status: 500 });
   }
 }
+
