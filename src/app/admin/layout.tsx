@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -13,18 +13,23 @@ import {
   ExternalLink,
   Wallet,
   RefreshCw,
-  Bell,
-  ShieldAlert,
+  LogOut,
+  UserCheck,
 } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [balance, setBalance] = useState<string>("0.00");
   const [currency, setCurrency] = useState<string>("USD");
   const [loadingBalance, setLoadingBalance] = useState(false);
   const [pendingEftCount, setPendingEftCount] = useState<number>(0);
 
+  // /admin/login sayfasında layout sidebarını ve üst barı gösterme
+  const isLoginPage = pathname === "/admin/login";
+
   const fetchStats = async () => {
+    if (isLoginPage) return;
     try {
       setLoadingBalance(true);
       const res = await fetch("/api/admin/stats");
@@ -43,7 +48,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     fetchStats();
-  }, []);
+  }, [pathname]);
+
+  const handleLogout = async () => {
+    if (!confirm("Yönetim oturumundan çıkmak istediğinize emin misiniz?")) return;
+    try {
+      await fetch("/api/admin/auth", { method: "DELETE" });
+      router.push("/admin/login");
+      router.refresh();
+    } catch (err) {
+      router.push("/admin/login");
+    }
+  };
+
+  if (isLoginPage) {
+    return <>{children}</>;
+  }
 
   const menuItems = [
     {
@@ -130,8 +150,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </nav>
         </div>
 
-        {/* Alt Kısım: Siteye Git */}
-        <div className="p-4 border-t border-gray-800">
+        {/* Alt Kısım: Siteye Git & Çıkış Yap */}
+        <div className="p-4 border-t border-gray-800 space-y-2">
           <Link
             href="/"
             target="_blank"
@@ -140,12 +160,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <span>Platform Vitrinine Git</span>
             <ExternalLink className="w-3.5 h-3.5" />
           </Link>
+
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center space-x-2 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-semibold transition"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span>Güvenli Çıkış</span>
+          </button>
         </div>
       </aside>
 
       {/* Sağ Ana İçerik */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Üst Bar: Canlı MTP Bakiye & Bildirimler */}
+        {/* Üst Bar: Canlı MTP Bakiye & Kullanıcı Bilgisi */}
         <header className="h-16 bg-[#0B0F19]/90 border-b border-gray-800 px-6 flex items-center justify-between backdrop-blur-md sticky top-0 z-30">
           <div className="flex items-center space-x-3">
             <h2 className="text-sm font-bold text-white hidden sm:block">
@@ -153,7 +181,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </h2>
           </div>
 
-          {/* Canlı Tedarikçi Bakiyesi */}
+          {/* Canlı Tedarikçi Bakiyesi ve Admin Rozeti */}
           <div className="flex items-center space-x-3">
             <div className="flex items-center space-x-2 px-3.5 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs">
               <Wallet className="w-4 h-4" />
@@ -171,9 +199,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </button>
             </div>
 
-            <span className="px-2.5 py-1 rounded-lg bg-purple-500/10 border border-purple-500/20 text-[#9146FF] text-[11px] font-bold">
-              Admin Aktif
-            </span>
+            <div className="flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-[#9146FF] text-[11px] font-bold">
+              <UserCheck className="w-3.5 h-3.5" />
+              <span>58672205858</span>
+            </div>
           </div>
         </header>
 

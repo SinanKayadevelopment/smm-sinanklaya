@@ -871,8 +871,7 @@ export default function OrderCreatePage() {
 
                     <div className="space-y-2 text-xs text-gray-600">
                       <p>
-                        Güvenli ortak ödeme simülasyonu devrededir. Tek tıkla ödemeyi onaylayabilir
-                        ve gerçek zamanlı sipariş/tedarik akışını deneyimleyebilirsiniz.
+                        Ödeme oturumunuz Shopier 3D Secure güvencesiyle oluşturuldu. Aşağıdaki butona tıklayarak ödemenizi güvenle tamamlayabilirsiniz.
                       </p>
                       <div className="p-3.5 rounded-xl bg-white border border-[#EDE9FE] space-y-1 font-mono text-[11px] text-[#1E1B4B] shadow-sm">
                         <div>Sipariş Kodu: {createdOrder.orderCode}</div>
@@ -883,24 +882,12 @@ export default function OrderCreatePage() {
 
                     <a
                       href={`/api/payment/shopier-pay?orderCode=${createdOrder.orderCode}`}
-                      className="btn-theme w-full py-4 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center space-x-2 font-black shadow-lg shadow-purple-600/30 mb-2"
+                      className="btn-theme w-full py-4 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center space-x-2 font-black shadow-lg shadow-purple-600/30"
                     >
                       <CreditCard className="w-4 h-4" />
                       <span>Shopier ile Güvenli Öde ({createdOrder.totalAmount.toFixed(2)} ₺)</span>
                       <ArrowRight className="w-4 h-4 ml-1" />
                     </a>
-
-                    <button
-                      type="button"
-                      onClick={handleConfirmPayment}
-                      disabled={paymentLoading}
-                      className="w-full py-2.5 rounded-xl text-[11px] text-gray-500 hover:text-gray-700 underline flex items-center justify-center space-x-1 font-medium transition"
-                    >
-                      <CreditCard className="w-4 h-4" />
-                      <span>
-                        {paymentLoading ? "3D Güvenlik Doğrulanıyor..." : "Test Ödemesini Onayla (Simülasyon)"}
-                      </span>
-                    </button>
                   </div>
                 </div>
               )}

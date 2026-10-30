@@ -126,3 +126,4 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ success: false, message: "Sunucu hatası" }, { status: 500 });
   }
 }
+
