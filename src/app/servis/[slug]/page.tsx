@@ -3,20 +3,16 @@ import type { Metadata } from "next";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PlatformLogo from "@/components/PlatformLogo";
+import SeoContentSection from "@/components/SeoContentSection";
 import { prisma } from "@/lib/prisma";
+import { getSeoData } from "@/lib/seo-data";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
-  Sparkles,
   ArrowRight,
   ShieldCheck,
   Zap,
   CheckCircle,
-  Tv,
-  Video,
-  Share2,
-  Globe,
-  MessageCircle,
 } from "lucide-react";
 
 interface ServicePageProps {
@@ -49,7 +45,7 @@ async function getServiceData(slug: string) {
       platform,
       category: {
         id: "all",
-        name: "Tüm",
+        name: "Tüm Paketler",
         slug: platform.slug,
         shortDescription: `${platform.name} kanalınız ve içerikleriniz için en kaliteli, stabil ve garantili yükseliş paketleri.`,
       },
@@ -58,7 +54,7 @@ async function getServiceData(slug: string) {
     };
   }
 
-  // 2. Kategori slug'ı ile ara (Örn: /servis/twitch-saatlik-canli-izleyici veya fallback saatlik-canli-izleyici)
+  // 2. Kategori slug'ı ile ara (Örn: /servis/kick-saatlik-canli-izleyici)
   let category = await prisma.category.findFirst({
     where: {
       OR: [
@@ -105,28 +101,35 @@ export async function generateMetadata({ params }: ServicePageProps): Promise<Me
     };
   }
 
-  const title = data.isAll
-    ? `${data.platform.name} Paketleri Satın Al | Yayıncı Kral`
-    : `${data.platform.name} ${data.category.name} Satın Al | Yayıncı Kral`;
-
-  const description =
-    data.category.shortDescription ||
-    `${data.platform.name} ${data.category.name} hizmetleri en ucuz fiyatlar, 7/24 anlık teslimat ve %100 şifresiz işlem garantisiyle Yayıncı Kral'da.`;
+  const seoData = getSeoData(slug, data.platform, data.category);
 
   return {
-    title,
-    description,
-    keywords: [
-      `${data.platform.name.toLowerCase()} satın al`,
-      `${data.platform.name.toLowerCase()} izleyici`,
-      `${data.category.name.toLowerCase()}`,
-      "yayıncı kral",
-      "yayincikral",
-    ],
+    title: seoData.title,
+    description: seoData.metaDescription,
+    keywords: seoData.keywords,
+    alternates: {
+      canonical: seoData.canonical,
+    },
     openGraph: {
-      title,
-      description,
+      title: seoData.title,
+      description: seoData.metaDescription,
+      url: seoData.canonical,
       siteName: "Yayıncı Kral",
+      locale: "tr_TR",
+      type: "website",
+      images: [
+        {
+          url: "https://www.yayincikral.com/og-image.png",
+          width: 1200,
+          height: 630,
+          alt: seoData.title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: seoData.title,
+      description: seoData.metaDescription,
     },
   };
 }
@@ -140,9 +143,107 @@ export default async function ServicePage({ params }: ServicePageProps) {
   }
 
   const { platform, category, packages, otherCategories } = serviceData;
+  const seoData = getSeoData(slug, platform, category);
+
+  // Fiyat Hesaplama (Product Schema.org için)
+  const prices = packages.map((p) => p.price);
+  const lowPrice = prices.length > 0 ? Math.min(...prices) : 19.9;
+  const highPrice = prices.length > 0 ? Math.max(...prices) : 499.0;
+
+  // 1. Schema.org Product (Yıldızlı Görünüm İçin)
+  const productSchema = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: seoData.h1,
+    description: seoData.metaDescription,
+    image: "https://www.yayincikral.com/og-image.png",
+    brand: {
+      "@type": "Brand",
+      name: "Yayıncı Kral",
+    },
+    offers: {
+      "@type": "AggregateOffer",
+      priceCurrency: "TRY",
+      lowPrice: lowPrice.toFixed(2),
+      highPrice: highPrice.toFixed(2),
+      offerCount: packages.length || 1,
+      availability: "https://schema.org/InStock",
+      url: seoData.canonical,
+      seller: {
+        "@type": "Organization",
+        name: "Yayıncı Kral",
+        url: "https://www.yayincikral.com",
+      },
+    },
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: seoData.ratingValue,
+      reviewCount: seoData.reviewCount,
+      bestRating: "5",
+      worstRating: "1",
+    },
+  };
+
+  // 2. Schema.org FAQPage (Google Sonuçlarında Zengin Soru-Cevap Kartları İçin)
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: seoData.faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.answer,
+      },
+    })),
+  };
+
+  // 3. Schema.org BreadcrumbList (Gezinme Yolu İçin)
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Ana Sayfa",
+        item: "https://www.yayincikral.com",
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: platform?.name || "Platform",
+        item: `https://www.yayincikral.com/servis/${platform?.slug || slug}`,
+      },
+      ...(category.id !== "all"
+        ? [
+            {
+              "@type": "ListItem",
+              position: 3,
+              name: category.name,
+              item: `https://www.yayincikral.com/servis/${category.slug}`,
+            },
+          ]
+        : []),
+    ],
+  };
 
   return (
     <div className="min-h-screen bg-[#F8F9FD] text-[#1E1B4B] flex flex-col justify-between selection:bg-[#7C1CF5] selection:text-white">
+      {/* Schema.org Yapısal Veri (JSON-LD) */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+
       {/* 1. Üst Navbar */}
       <Navbar />
 
@@ -179,15 +280,14 @@ export default async function ServicePage({ params }: ServicePageProps) {
               <PlatformLogo platform={platform?.slug || slug} size={56} />
             </div>
 
-            {/* Başlık */}
+            {/* Başlık (SEO H1) */}
             <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white drop-shadow-sm">
-              {platform?.name} {category.name} Paketleri
+              {seoData.h1}
             </h1>
 
             {/* Açıklama Metni */}
             <p className="max-w-3xl mx-auto text-sm sm:text-base text-purple-100 font-medium leading-relaxed">
-              {category.shortDescription ||
-                `${platform?.name} canlı yayınlarınızın etkileşimini ve görünürlüğünü artırarak daha geniş kitlelere ulaşın! Hızlı, güvenilir ve uygun fiyatlı yükseliş paketlerimiz sayesinde kanalınızı güçlendirin, topluluğunuzu ve etkileşiminizi artırın. Şimdi hedeflerinize daha hızlı ulaşın!`}
+              {seoData.articleIntro}
             </p>
 
             {/* Kategori Değiştirme Butonları (Pills) */}
@@ -358,6 +458,13 @@ export default async function ServicePage({ params }: ServicePageProps) {
             </div>
           </div>
         </section>
+
+        {/* 5. Zengin SEO Makale & FAQ Alanı */}
+        <SeoContentSection
+          seoData={seoData}
+          platformName={platform?.name}
+          categoryName={category.name}
+        />
       </main>
 
       {/* Sağ Alttaki Canlı Destek Butonu */}
@@ -379,7 +486,7 @@ export default async function ServicePage({ params }: ServicePageProps) {
         </a>
       </div>
 
-      {/* 5. Footer */}
+      {/* 6. Footer */}
       <Footer />
     </div>
   );

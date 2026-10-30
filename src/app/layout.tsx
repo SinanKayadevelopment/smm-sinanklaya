@@ -22,6 +22,13 @@ export const metadata: Metadata = {
   description:
     "Yayıncı Kral ile Twitch, Kick, YouTube, TikTok ve Instagram için anlık, şifresiz ve garantili canlı yayın izleyici, abone ve takipçi paketleri. 7/24 kesintisiz destek.",
   keywords: [
+    "kick izleyici botu",
+    "kick canlı izleyici satın al",
+    "twitch izleyici botu",
+    "twitch takipçi satın al",
+    "kick saatlik izleyici",
+    "kick aylık izleyici desteği",
+    "twitch stabil canlı izleyici",
     "yayıncı kral",
     "yayincikral",
     "yayincikral.com",
@@ -84,6 +91,42 @@ export default function RootLayout({
   return (
     <html lang="tr" className={`${jakarta.variable} font-sans h-full antialiased`}>
       <head>
+        {/* Organization ve WebSite Schema.org Yapısal Veri (Google SEO) */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@graph": [
+                {
+                  "@type": "Organization",
+                  "@id": "https://www.yayincikral.com/#organization",
+                  name: "Yayıncı Kral",
+                  url: "https://www.yayincikral.com",
+                  logo: "https://www.yayincikral.com/og-image.png",
+                  contactPoint: {
+                    "@type": "ContactPoint",
+                    telephone: "+905331948396",
+                    contactType: "customer service",
+                    areaServed: "TR",
+                    availableLanguage: "Turkish",
+                  },
+                },
+                {
+                  "@type": "WebSite",
+                  "@id": "https://www.yayincikral.com/#website",
+                  url: "https://www.yayincikral.com",
+                  name: "Yayıncı Kral",
+                  description:
+                    "Türkiye'nin 1 Numaralı Yayıncı ve Sosyal Medya Hizmetleri. Kick izleyici botu, Twitch canlı izleyici ve takipçi paketleri.",
+                  publisher: {
+                    "@id": "https://www.yayincikral.com/#organization",
+                  },
+                },
+              ],
+            }),
+          }}
+        />
         {/* Microsoft Clarity Resmi İzleme Kodu */}
         <Script id="microsoft-clarity" strategy="afterInteractive">
           {`
