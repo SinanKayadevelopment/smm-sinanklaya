@@ -25,6 +25,17 @@ function OrderSuccessContent() {
 
   const [copied, setCopied] = React.useState(false);
 
+  // Müşteri bu sayfaya geldiğinde Shopier API üzerinden ödeme durumunu anında doğrula ve tedariği tetikle
+  React.useEffect(() => {
+    if (!orderCode || isFailed) return;
+    fetch(`/api/orders/check-status?code=${encodeURIComponent(orderCode)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("Sipariş ödeme & tedarik senkronizasyonu:", data);
+      })
+      .catch((err) => console.warn("Ödeme kontrol hatası:", err));
+  }, [orderCode, isFailed]);
+
   const copyCode = () => {
     if (!orderCode) return;
     navigator.clipboard.writeText(orderCode);
