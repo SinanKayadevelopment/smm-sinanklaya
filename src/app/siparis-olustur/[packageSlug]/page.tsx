@@ -173,20 +173,8 @@ export default function OrderCreatePage() {
       const data = await res.json();
       if (res.ok && data.success) {
         setCreatedOrder(data.order);
-        if (data.shopier?.fields && (paymentMethod === "ONLINE_SHOPIER" || paymentMethod === "ONLINE_PAYTR")) {
-          const form = document.createElement("form");
-          form.method = "POST";
-          form.action = data.shopier.actionUrl || "https://www.shopier.com/ShowProduct/api_pay4.php";
-          form.style.display = "none";
-          for (const [k, v] of Object.entries(data.shopier.fields)) {
-            const input = document.createElement("input");
-            input.type = "hidden";
-            input.name = k;
-            input.value = String(v);
-            form.appendChild(input);
-          }
-          document.body.appendChild(form);
-          form.submit();
+        if ((data.shopier?.paymentUrl || data.shopier?.autoSubmitUrl) && (paymentMethod === "ONLINE_SHOPIER" || paymentMethod === "ONLINE_PAYTR")) {
+          window.location.href = data.shopier.autoSubmitUrl || data.shopier.paymentUrl;
           return;
         }
         setStep(4);

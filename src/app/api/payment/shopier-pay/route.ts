@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { generateShopierPayment } from "@/lib/shopier";
+import { createShopierPayment } from "@/lib/shopier";
 
 export async function GET(request: NextRequest) {
   try {
@@ -30,24 +30,36 @@ export async function GET(request: NextRequest) {
       return new NextResponse("Sipariş bulunamadı.", { status: 404 });
     }
 
-    const packageName = `${order.package.category.platform.name} - ${order.package.name}`;
-    const payment = await generateShopierPayment({
+    const packageTitle = `${order.package.category.platform.name} - ${order.package.name}`;
+    const payment = await createShopierPayment({
       orderCode: order.orderCode,
       totalAmount: order.totalAmount,
+      packageTitle,
       customerName: order.customerName,
       customerEmail: order.customerEmail,
       customerPhone: order.customerPhone,
-      packageName,
-      billingAddress: order.companyName || "Türkiye",
-      billingCity: "İstanbul",
     });
 
-    return new NextResponse(payment.htmlForm, {
-      status: 200,
-      headers: {
-        "Content-Type": "text/html; charset=utf-8",
-      },
-    });
+    // Güncel productId kaydet
+    if (payment.productId) {
+      await prisma.order.update({
+        where: { id: order.id },
+        data: { shopierProductId: payment.productId },
+      });
+    }
+
+    // Hosted Checkout HTML formu döndür
+    if (payment.checkoutHtml) {
+      return new NextResponse(payment.checkoutHtml, {
+        status: 200,
+        headers: {
+          "Content-Type": "text/html; charset=utf-8",
+        },
+      });
+    }
+
+    // Doğrudan yönlendirme
+    return NextResponse.redirect(payment.paymentUrl, { status: 302 });
   } catch (error: any) {
     console.error("Shopier pay yönlendirme hatası:", error);
     const msg = error?.message || "Ödeme oturumu oluşturulurken bir hata oluştu.";
@@ -71,4 +83,3 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   return GET(request);
 }
-

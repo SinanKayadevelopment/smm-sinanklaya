@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { generatePayTrToken } from "@/lib/paytr";
-import { generateShopierPayment, getShopierConfig } from "@/lib/shopier";
+import { createShopierPayment, getShopierConfig } from "@/lib/shopier";
 
 function generateOrderCode(): string {
   const randomNum = Math.floor(100000 + Math.random() * 900000);
@@ -60,15 +60,15 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Online Ödeme Seçilmişse Shopier API anahtarlarının tanımlı olduğunu doğrula
+    // Online Ödeme Seçilmişse Shopier PAT anahtarının tanımlı olduğunu doğrula
     if (paymentMethod === "ONLINE_SHOPIER" || paymentMethod === "ONLINE_PAYTR") {
       const config = await getShopierConfig();
-      if (!config.apiKey || !config.apiSecret) {
+      if (!config.pat) {
         return NextResponse.json(
           {
             success: false,
             message:
-              "Shopier Sanal POS henüz yapılandırılmamış. Lütfen Yönetim Paneli > Sistem & Ödeme Ayarları (/admin/settings) sayfasından Shopier API Key ve API Secret bilgilerinizi kaydediniz.",
+              "Shopier Sanal POS henüz yapılandırılmamış. Lütfen Yönetim Paneli > Sistem & Ödeme Ayarları (/admin/settings) sayfasından Shopier PAT anahtarınızı kaydediniz.",
           },
           { status: 400 }
         );
@@ -117,28 +117,35 @@ export async function POST(request: NextRequest) {
     let paytrData: any = null;
     let bankAccounts: any = null;
 
-    // Online Ödeme için Shopier verilerini hazırla (ONLINE_SHOPIER veya ONLINE_PAYTR)
+    // Online Ödeme için Shopier REST API v1 verilerini hazırla (ONLINE_SHOPIER veya ONLINE_PAYTR)
     if (paymentMethod === "ONLINE_SHOPIER" || paymentMethod === "ONLINE_PAYTR") {
       try {
-        const packageName = `${pkg.category.platform.name} - ${pkg.name}`;
-        const shopierPayment = await generateShopierPayment({
+        const packageTitle = `${pkg.category.platform.name} - ${pkg.name}`;
+        const shopierPayment = await createShopierPayment({
           orderCode: order.orderCode,
           totalAmount: order.totalAmount,
+          packageTitle,
           customerName: order.customerName,
           customerEmail: order.customerEmail,
           customerPhone: order.customerPhone,
-          packageName,
-          billingAddress: companyName ? companyName.trim() : "Türkiye",
-          billingCity: "İstanbul",
         });
 
+        // Ürün ID'sini sipariş kaydına işle
+        if (shopierPayment.productId) {
+          await prisma.order.update({
+            where: { id: order.id },
+            data: { shopierProductId: shopierPayment.productId },
+          });
+        }
+
         shopierData = {
-          actionUrl: shopierPayment.actionUrl,
-          fields: shopierPayment.fields,
+          productId: shopierPayment.productId,
+          paymentUrl: shopierPayment.paymentUrl,
+          checkoutHtml: shopierPayment.checkoutHtml,
           autoSubmitUrl: `/api/payment/shopier-pay?orderCode=${order.orderCode}`,
         };
-      } catch (err) {
-        console.error("Shopier parametre oluşturma hatası:", err);
+      } catch (err: any) {
+        console.error("Shopier REST API ödeme bağlantısı hatası:", err);
       }
 
       // Geriye dönük PayTR token'ı da üret

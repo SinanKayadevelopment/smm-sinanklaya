@@ -91,6 +91,7 @@ model Order {
   startCount      Int?     @default(0)
   remains         Int?     @default(0)
   paytrToken      String?
+  shopierProductId String?
   errorMessage    String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
