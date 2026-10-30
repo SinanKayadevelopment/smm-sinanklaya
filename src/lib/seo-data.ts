@@ -644,3 +644,4 @@ export function getSeoData(
     reviewCount: 180,
   };
 }
+
