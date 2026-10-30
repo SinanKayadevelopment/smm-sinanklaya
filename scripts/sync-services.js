@@ -94,15 +94,24 @@ async function runSync() {
 
     // 1. KICK
     if (platform.includes("kick")) {
+      if (name.includes("anket") || category.includes("anket")) {
+        return findById(8051) || findById(3771);
+      }
+      if (name.includes("chat") || name.includes("sohbet") || category.includes("chat") || category.includes("sohbet")) {
+        return findById(3787) || findById(3771);
+      }
+      if (name.includes("istirat") || name.includes("kombo") || name.includes("affiliate")) {
+        return findById(7260);
+      }
+      if (name.includes("takipci") || category.includes("takipci")) {
+        return findById(7260);
+      }
       if (category.includes("saatlik") || name.includes("saatlik") || name.includes("izleyici")) {
         if (name.includes("2 saat")) return findById(3772);
         if (category.includes("24 saat") || name.includes("24 saat") || name.includes("1 gun")) return findById(3776);
         if (category.includes("haftalik") || name.includes("hafta")) return findById(3777);
         if (category.includes("aylik") || name.includes("ay")) return findById(3778);
         return findById(3771);
-      }
-      if (category.includes("takipci") || name.includes("takipci")) {
-        return findById(7260);
       }
       if (category.includes("klip") || category.includes("video") || name.includes("klip")) {
         return findById(3779) || findById(3768);
@@ -111,13 +120,13 @@ async function runSync() {
 
     // 2. TWITCH
     if (platform.includes("twitch")) {
+      if (name.includes("takipci") || category.includes("takipci")) {
+        return findById(4753) || findById(10162);
+      }
       if (category.includes("saatlik") || name.includes("saatlik") || name.includes("izleyici")) {
         if (name.includes("2 saat")) return findById(8153);
         if (category.includes("24 saat") || name.includes("24 saat")) return findById(8157);
         return findById(8151);
-      }
-      if (category.includes("takipci") || name.includes("takipci")) {
-        return findById(4753) || findById(10162);
       }
       if (category.includes("klip") || category.includes("video") || name.includes("klip")) {
         return findById(10160) || findById(10159);
@@ -126,21 +135,24 @@ async function runSync() {
 
     // 3. YOUTUBE
     if (platform.includes("youtube")) {
-      if (category.includes("abone") || name.includes("abone")) {
+      if (name.includes("abone") || category.includes("abone")) {
         return findById(9694) || findById(7478);
+      }
+      if (name.includes("saat") || category.includes("saat") || name.includes("watchtime")) {
+        return findById(9681) || findById(9662);
       }
       if (category.includes("video") || category.includes("izlenme") || name.includes("izlenme")) {
         return findById(9662);
-      }
-      if (category.includes("4000 saat") || name.includes("4000 saat") || name.includes("watchtime")) {
-        return findById(7504) || findById(9681);
       }
     }
 
     // 4. TIKTOK
     if (platform.includes("tiktok")) {
-      if (category.includes("takipci") || name.includes("takipci")) {
+      if (name.includes("takipci")) {
         return findById(7720) || findById(10295);
+      }
+      if (name.includes("pk") || name.includes("canli") || category.includes("pk")) {
+        return findById(9855) || findById(9197);
       }
       if (category.includes("izlenme") || name.includes("izlenme")) {
         return findById(9592) || findById(9593);
@@ -152,7 +164,7 @@ async function runSync() {
 
     // 5. INSTAGRAM
     if (platform.includes("instagram")) {
-      if (category.includes("takipci") || name.includes("takipci")) {
+      if (name.includes("takipci") || category.includes("takipci")) {
         return findById(5542) || findById(10304);
       }
       if (category.includes("begeni") || name.includes("begeni")) {
@@ -172,20 +184,37 @@ async function runSync() {
 
     // 7. DISCORD
     if (platform.includes("discord")) {
-      if (category.includes("uye") || category.includes("member")) return findById(7344) || findById(10220);
+      if (name.includes("cevrimici") || name.includes("online")) {
+        return findById(6373) || findById(10220);
+      }
+      if (name.includes("tepki") || name.includes("reaction")) {
+        return findById(9631);
+      }
+      if (name.includes("topluluk") || name.includes("uye") || category.includes("uye")) {
+        return findById(7344) || findById(10220);
+      }
       if (category.includes("boost")) return findById(5135);
-      if (category.includes("reaction")) return findById(9631);
     }
 
     // 8. SPOTIFY
     if (platform.includes("spotify")) {
-      if (category.includes("dinlenme") || category.includes("play")) return findById(2549) || findById(10070);
+      if (name.includes("aylik") || name.includes("dinleyici") || category.includes("dinleyici")) {
+        return findById(9434) || findById(9433);
+      }
+      if (name.includes("dinlenme") || category.includes("dinlenme") || name.includes("sarki")) {
+        return findById(2549) || findById(10070);
+      }
       if (category.includes("takipci")) return findById(5479);
     }
 
     // 9. TELEGRAM
     if (platform.includes("telegram")) {
-      if (category.includes("uye") || category.includes("member")) return findById(7507) || findById(9244);
+      if (name.includes("goruntulenme") || name.includes("tepki") || category.includes("tepki")) {
+        return findById(9213) || findById(7509);
+      }
+      if (name.includes("kanal") || name.includes("uye") || category.includes("uye")) {
+        return findById(7507) || findById(9244);
+      }
     }
 
     return null;
@@ -235,3 +264,4 @@ async function runSync() {
 runSync()
   .catch(console.error)
   .finally(() => prisma.$disconnect());
+

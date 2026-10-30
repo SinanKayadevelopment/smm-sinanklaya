@@ -528,6 +528,132 @@ const SEO_DICTIONARY: Record<string, Partial<SeoPageData>> = {
     ratingValue: "4.9",
     reviewCount: 285,
   },
+
+  // 12. DISCORD PLATFORM
+  discord: {
+    title: "Discord Çevrimiçi Sunucu Üyesi & Emoji Tepki Satın Al | Yayıncı Kral",
+    metaDescription:
+      "Discord çevrimiçi sunucu üyesi, kalıcı topluluk üyeleri ve mesaj emoji tepkileriyle sunucunu canlandır. Yetki veya şifre gerekmez, anında teslimat!",
+    keywords: [
+      "discord sunucu üyesi satın al",
+      "discord çevrimiçi üye",
+      "discord online üye satın al",
+      "discord emoji tepki satın al",
+      "discord topluluk büyütme",
+    ],
+    h1: "Discord Sunucu Üyesi & Emoji Tepki Desteği",
+    h2: "Sunucunuzun Üye Listesini Canlandıran Çevrimiçi ve Aktif Topluluk Desteği",
+    badgeText: "Discord Çözümleri",
+    articleIntro:
+      "Oyun, yayıncı veya topluluk sunucunuzun ilk izlenimini güçlendirmek için çevrimiçi görünen aktif üyelere ve etkileşimli duyurulara ihtiyaç duyarsınız. Yayıncı Kral, yetki veya giriş bilgisi istemeden sunucu davet linkinizle güvenle üye teslimatı sağlar.",
+    sections: [
+      {
+        title: "Discord Çevrimiçi (Online) Üyelerin Önemi",
+        content: [
+          "Yeni gelen kullanıcılar öncelikle sağ paneldeki yeşil ışıklı çevrimiçi üye sayısına bakar. Kalabalık ve canlı görünen sunucularda kalma oranı %85 artar.",
+          "Duyuru mesajlarına eklenen emoji tepkileri (reactions), topluluğunuzun organik ve dinamik bir hava yakalamasını sağlar.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "Discord sunucuma bot yetkisi vermem gerekir mi?",
+        answer:
+          "Kesinlikle hayır. Yalnızca süresiz bir sunucu davet bağlantısı (discord.gg/...) paylaşmanız yeterlidir.",
+      },
+      {
+        question: "Çevrimiçi üyeler sunucuda ne kadar kalır?",
+        answer:
+          "Paket türüne bağlı olarak belirlenen süre boyunca yeşil ışıklı aktif oturum korunur ve sunucunuz canlı görünür.",
+      },
+    ],
+    ratingValue: "4.9",
+    reviewCount: 215,
+  },
+
+  // 13. SPOTIFY PLATFORM
+  spotify: {
+    title: "Spotify Aylık Dinleyici & Şarkı Dinlenme Satın Al | Yayıncı Kral",
+    metaDescription:
+      "Spotify aylık dinleyici ve şarkı dinlenme desteğiyle sanatçı profilini yükselt. Algoritma uyumlu, telif korumalı ve garantili Spotify müzik paketleri.",
+    keywords: [
+      "spotify aylık dinleyici satın al",
+      "spotify dinlenme satın al",
+      "spotify şarkı dinlenme",
+      "spotify sanatçı yükselişi",
+      "spotify haftalık keşif desteği",
+    ],
+    h1: "Spotify Aylık Dinleyici & Şarkı Dinlenme Desteği",
+    h2: "Şarkılarınızı Keşfet ve Editoryal Çalma Listelerine Taşıyan Müzik Büyüme Çözümleri",
+    badgeText: "Spotify Sanatçı Çözümleri",
+    articleIntro:
+      "Bağımsız sanatçılar ve müzik üreticileri için Spotify algoritması en kritik basamaktır. Aylık dinleyici sayısı ve yüksek dinleme süreleri (retention), parçalarınızın Release Radar ve Haftalık Keşif listelerine girmesini tetikler.",
+    sections: [
+      {
+        title: "Spotify Algoritmasında Aylık Dinleyicinin Rolü",
+        content: [
+          "Aylık dinleyici metriği, Spotify for Artists profilinizde 30 gün boyunca görünür kalır ve müzik şirketleri ile dinleyiciler nezdinde güçlü bir itibar oluşturur.",
+          "Tüm dinlenmeler telif ve platform standartlarına uygundur; hesabınıza veya şarkınıza herhangi bir zarar vermez.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "Spotify istatistikleri for Artists paneline yansır mı?",
+        answer:
+          "Evet, tüm dinlenme ve aylık dinleyiciler resmi Spotify for Artists panelinizde ve sanatçı sayfanızda doğrulanır.",
+      },
+      {
+        question: "Şarkı linki vermem yeterli mi?",
+        answer:
+          "Evet, şarkınızın veya sanatçı profilinizin herkese açık Spotify bağlantısını girmeniz yeterlidir.",
+      },
+    ],
+    ratingValue: "5.0",
+    reviewCount: 260,
+  },
+
+  // 14. TELEGRAM PLATFORM
+  telegram: {
+    title: "Telegram Kanal Üyesi & Gönderi Görüntülenme Satın Al | Yayıncı Kral",
+    metaDescription:
+      "Telegram kanal üyesi, grup üyesi ve gönderi görüntülenme paketleriyle topluluğunu büyüt. Şifresiz, anında teslimat ve düşüş garantili Telegram hizmetleri.",
+    keywords: [
+      "telegram kanal üyesi satın al",
+      "telegram grup üyesi satın al",
+      "telegram görüntülenme satın al",
+      "telegram emoji tepki",
+      "telegram kanal büyütme",
+    ],
+    h1: "Telegram Kanal Üyesi & Gönderi Görüntülenme Desteği",
+    h2: "Kanalınızı Arama Sıralamasında Zirveye Taşıyacak Güvenilir Topluluk Paketleri",
+    badgeText: "Telegram Çözümleri",
+    articleIntro:
+      "Telegram üzerinde haber, kripto, e-ticaret veya topluluk kanalı yönetiyorsanız yüksek üye sayısı ve aktif gönderi okunma oranları kanalınızın güvenilirliğini belirler. Yayıncı Kral garantili ve hızlı teslimat sağlar.",
+    sections: [
+      {
+        title: "Telegram Kanallarında Etkileşimin Gücü",
+        content: [
+          "Yüksek üyeli kanallar Telegram global arama sonuçlarında (Search) üst sıralarda çıkar ve organik kullanıcıların kanalınıza katılmasını sağlar.",
+          "Gönderilerinize eklenen görüntülenme ve pozitif emoji tepkileri kanalınızın daima canlı olduğunu kanıtlar.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "Telegram kanalımın linki dışında bir bilgi gerekir mi?",
+        answer:
+          "Hayır, yalnızca herkese açık kanal veya grup bağlantınız (t.me/kanaladi) yeterlidir.",
+      },
+      {
+        question: "Üyeler kalıcı mıdır?",
+        answer:
+          "Paketlerimiz düşüşlere karşı telafi garantilidir; siparişiniz tamamlandıktan sonra güvenle kanalınızda kalır.",
+      },
+    ],
+    ratingValue: "4.9",
+    reviewCount: 195,
+  },
 };
 
 /**

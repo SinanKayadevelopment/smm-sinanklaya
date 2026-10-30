@@ -119,15 +119,24 @@ export function matchMtpServiceForPackage(
 
   // 1. KICK EŞLEŞTİRMELERİ
   if (platform.includes("kick")) {
+    if (name.includes("anket") || category.includes("anket")) {
+      return findById(8051) || findById(3771); // Kick Anket Oyları
+    }
+    if (name.includes("chat") || name.includes("sohbet") || category.includes("chat") || category.includes("sohbet")) {
+      return findById(3787) || findById(3771); // Kick Chat & Sohbet
+    }
+    if (name.includes("istirat") || name.includes("kombo") || name.includes("affiliate")) {
+      return findById(7260); // Kick İştirak Takipçi & İzleyici Desteği
+    }
+    if (name.includes("takipci") || category.includes("takipci")) {
+      return findById(7260); // 90 Gün Refill Kick Takipçi
+    }
     if (category.includes("saatlik") || name.includes("saatlik") || name.includes("izleyici")) {
       if (name.includes("2 saat")) return findById(3772); // 2 Saatlik Smooth Canlı İzleyici
       if (category.includes("24 saat") || name.includes("24 saat") || name.includes("1 gun")) return findById(3776); // 1 Günlük Canlı İzleyici
       if (category.includes("haftalik") || name.includes("hafta")) return findById(3777); // 1 Haftalık Canlı İzleyici
       if (category.includes("aylik") || name.includes("ay")) return findById(3778); // 1 Aylık Canlı İzleyici
       return findById(3771); // 1 Saatlik Smooth Canlı İzleyici
-    }
-    if (category.includes("takipci") || name.includes("takipci")) {
-      return findById(7260); // 90 Gün Refill Kick Takipçi
     }
     if (category.includes("klip") || category.includes("video") || name.includes("klip") || name.includes("izlenme")) {
       return findById(3779) || findById(3768);
@@ -136,13 +145,13 @@ export function matchMtpServiceForPackage(
 
   // 2. TWITCH EŞLEŞTİRMELERİ
   if (platform.includes("twitch")) {
+    if (name.includes("takipci") || category.includes("takipci")) {
+      return findById(4753) || findById(10162); // 30 Gün Refill Twitch Takipçi
+    }
     if (category.includes("saatlik") || name.includes("saatlik") || name.includes("izleyici")) {
       if (name.includes("2 saat")) return findById(8153); // 120 Dk %100 Eşzamanlı İzleyici
       if (category.includes("24 saat") || name.includes("24 saat")) return findById(8157); // 1440 Dk (24 Saat) %100 Eşzamanlı
       return findById(8151); // 60 Dk %100 Eşzamanlı İzleyici
-    }
-    if (category.includes("takipci") || name.includes("takipci")) {
-      return findById(4753) || findById(10162); // 30 Gün Refill Twitch Takipçi
     }
     if (category.includes("klip") || category.includes("video") || name.includes("klip")) {
       return findById(10160) || findById(10159);
@@ -151,21 +160,24 @@ export function matchMtpServiceForPackage(
 
   // 3. YOUTUBE EŞLEŞTİRMELERİ
   if (platform.includes("youtube")) {
-    if (category.includes("abone") || name.includes("abone")) {
+    if (name.includes("abone") || category.includes("abone")) {
       return findById(9694) || findById(7478); // 30 Gün Refill Gerçek Abone
+    }
+    if (name.includes("saat") || category.includes("saat") || name.includes("watchtime")) {
+      return findById(9681) || findById(9662); // YouTube Yüksek Tutma Oranlı Watchtime İzlenmeleri
     }
     if (category.includes("video") || category.includes("izlenme") || name.includes("izlenme")) {
       return findById(9662); // 60 Gün Refill Real Video Views
-    }
-    if (category.includes("4000 saat") || name.includes("4000 saat") || name.includes("watchtime")) {
-      return findById(7504) || findById(9681);
     }
   }
 
   // 4. TIKTOK EŞLEŞTİRMELERİ
   if (platform.includes("tiktok")) {
-    if (category.includes("takipci") || name.includes("takipci")) {
+    if (name.includes("takipci")) {
       return findById(7720) || findById(10295); // 30 Gün Refill TikTok Takipçi
+    }
+    if (name.includes("pk") || name.includes("canli") || category.includes("pk")) {
+      return findById(9855) || findById(9197); // TikTok Canlı Yayın & PK Desteği
     }
     if (category.includes("izlenme") || name.includes("izlenme")) {
       return findById(9592) || findById(9593); // TikTok Monetizable Views
@@ -177,7 +189,7 @@ export function matchMtpServiceForPackage(
 
   // 5. INSTAGRAM EŞLEŞTİRMELERİ
   if (platform.includes("instagram")) {
-    if (category.includes("takipci") || name.includes("takipci")) {
+    if (name.includes("takipci") || category.includes("takipci")) {
       return findById(5542) || findById(10304); // 30 Gün Refill Hızlı Takipçi
     }
     if (category.includes("begeni") || name.includes("begeni")) {
@@ -197,31 +209,40 @@ export function matchMtpServiceForPackage(
 
   // 7. DISCORD
   if (platform.includes("discord")) {
-    if (category.includes("uye") || category.includes("member") || name.includes("uye")) {
-      return findById(7344) || findById(10220); // Discord Üye 30 Gün Refill
+    if (name.includes("cevrimici") || name.includes("online")) {
+      return findById(6373) || findById(10220); // Discord Çevrimiçi Üye
     }
-    if (category.includes("boost") || name.includes("boost")) {
+    if (name.includes("tepki") || name.includes("reaction")) {
+      return findById(9631); // Discord Emoji Tepki
+    }
+    if (name.includes("topluluk") || name.includes("uye") || category.includes("uye")) {
+      return findById(7344) || findById(10220); // Discord Topluluk Üyesi 30 Gün Refill
+    }
+    if (category.includes("boost")) {
       return findById(5135);
-    }
-    if (category.includes("reaction") || name.includes("tepki")) {
-      return findById(9631);
     }
   }
 
   // 8. SPOTIFY
   if (platform.includes("spotify")) {
-    if (category.includes("dinlenme") || category.includes("play") || name.includes("dinlenme")) {
-      return findById(2549) || findById(10070); // Spotify Dinlenme Ömür Boyu Garantili
+    if (name.includes("aylik") || name.includes("dinleyici") || category.includes("dinleyici")) {
+      return findById(9434) || findById(9433); // Spotify Aylık Dinleyici
     }
-    if (category.includes("takipci") || name.includes("takipci")) {
+    if (name.includes("dinlenme") || category.includes("dinlenme") || name.includes("sarki")) {
+      return findById(2549) || findById(10070); // Spotify Şarkı Dinlenme
+    }
+    if (category.includes("takipci")) {
       return findById(5479) || findById(3491);
     }
   }
 
   // 9. TELEGRAM
   if (platform.includes("telegram")) {
-    if (category.includes("uye") || category.includes("member") || name.includes("uye")) {
-      return findById(7507) || findById(9244) || findById(10229); // Telegram Members
+    if (name.includes("goruntulenme") || name.includes("tepki") || category.includes("tepki")) {
+      return findById(9213) || findById(7509); // Telegram Gönderi Görüntülenme & Tepki
+    }
+    if (name.includes("kanal") || name.includes("uye") || category.includes("uye")) {
+      return findById(7507) || findById(9244) || findById(10229); // Telegram Kanal Üyesi
     }
   }
 

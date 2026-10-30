@@ -2,6 +2,7 @@ import React from "react";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import PopularPackages from "@/components/PopularPackages";
+import CreatorShowcase from "@/components/CreatorShowcase";
 import Testimonials from "@/components/Testimonials";
 import InformationBoxes from "@/components/InformationBoxes";
 import FloatingSupportWidgets from "@/components/FloatingSupportWidgets";
@@ -50,15 +51,39 @@ async function getData() {
       take: 8,
     });
 
-    return { platforms, popularPackages };
+    // Özel Yayıncı & Sanatçı Yükseliş Paketleri
+    const creatorPackages = await prisma.package.findMany({
+      where: {
+        isActive: true,
+        OR: [
+          { category: { platform: { slug: { in: ["discord", "spotify", "telegram"] } } } },
+          { slug: { contains: "istirat" } },
+          { slug: { contains: "4000-saat" } },
+          { slug: { contains: "canli-sohbet" } },
+          { slug: { contains: "pk" } },
+          { slug: { contains: "anket" } },
+        ],
+      },
+      orderBy: { sortOrder: "asc" },
+      include: {
+        category: {
+          include: {
+            platform: true,
+          },
+        },
+      },
+      take: 8,
+    });
+
+    return { platforms, popularPackages, creatorPackages };
   } catch (err) {
     console.error("Veri yükleme hatası:", err);
-    return { platforms: [], popularPackages: [] };
+    return { platforms: [], popularPackages: [], creatorPackages: [] };
   }
 }
 
 export default async function HomePage() {
-  const { platforms, popularPackages } = await getData();
+  const { platforms, popularPackages, creatorPackages } = await getData();
 
   return (
     <div className="min-h-screen bg-[#F8F9FD] text-[#1E1B4B] flex flex-col justify-between selection:bg-[#7C1CF5] selection:text-white">
@@ -66,13 +91,16 @@ export default async function HomePage() {
       <Navbar />
 
       <main className="flex-1">
-        {/* 2. Hero Bölümü & 5 Servis Butonu (Screenshot 2) */}
+        {/* 2. Hero Bölümü & 5 Servis Butonu */}
         <HeroSection initialPlatforms={platforms as any} />
 
-        {/* 3. Çok Satanlar Vitrini (Screenshot 2) */}
+        {/* 3. Çok Satanlar Vitrini */}
         <PopularPackages packages={popularPackages as any} />
 
-        {/* 4. Platformlara Göre Tüm Hizmetler Bölümü */}
+        {/* 4. Özel Yayıncı & Sanatçı Yükseliş Paketleri Vitrini */}
+        <CreatorShowcase packages={creatorPackages as any} />
+
+        {/* 5. Platformlara Göre Tüm Hizmetler Bölümü */}
         <section id="hizmetler" className="py-20 bg-white relative border-t border-[#EDE9FE]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-3xl mx-auto mb-16 space-y-3">
@@ -187,17 +215,17 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* 5. Neden Bizi Tercih Etmelisiniz & Müşteri Değerlendirmeleri Bölümü */}
+        {/* 6. Neden Bizi Tercih Etmelisiniz & Müşteri Değerlendirmeleri Bölümü */}
         <Testimonials />
 
-        {/* 6. Genel Bilgilendirmeler Bölümü (10 Kutu) */}
+        {/* 7. Genel Bilgilendirmeler Bölümü */}
         <InformationBoxes />
       </main>
 
-      {/* 7. Sol Alt Büyüteç ve Sağ Alt Çevrim İçi Canlı Destek Butonları */}
+      {/* 8. Sol Alt Büyüteç ve Sağ Alt Çevrim İçi Canlı Destek Butonları */}
       <FloatingSupportWidgets />
 
-      {/* 8. Footer */}
+      {/* 9. Footer */}
       <Footer />
     </div>
   );
