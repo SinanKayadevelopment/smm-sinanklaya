@@ -94,7 +94,8 @@ export async function createShopierPayment(params: CreateShopierPaymentParams): 
       params.imageUrl ||
       "https://placehold.co/600x600/1e1b4b/ffffff.png?text=Dijital+Paket",
     orderId: params.orderCode,
-    hostedCheckout: true,
+    customListing: false,
+    hostedCheckout: false,
     shopSlug: config.shopSlug || "yayincikral",
   });
 
