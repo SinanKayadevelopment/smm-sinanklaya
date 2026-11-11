@@ -112,144 +112,161 @@ export function matchMtpServiceForPackage(
   services: MtpService[]
 ): MtpService | null {
   const findById = (id: number) => services.find((s) => Number(s.service) === Number(id)) || null;
+  const pickCheapest = (ids: number[]): MtpService | null => {
+    const found = ids.map((id) => findById(id)).filter((s): s is MtpService => Boolean(s));
+    if (found.length === 0) return null;
+    const withinMax = found.filter((s) => (Number(s.max) || 0) >= pkg.quantity);
+    const pool = withinMax.length > 0 ? withinMax : found;
+    return [...pool].sort((a, b) => parseFloat(a.rate) - parseFloat(b.rate))[0];
+  };
 
   const platform = cleanTurkish(pkg.category.platform.name);
   const category = cleanTurkish(pkg.category.name);
   const name = cleanTurkish(pkg.name);
 
-  // 1. KICK EŞLEŞTİRMELERİ
+  // 1. KICK EŞLEŞTİRMELERİ (En Ucuz Muadil)
   if (platform.includes("kick")) {
     if (name.includes("anket") || category.includes("anket")) {
-      return findById(8051) || findById(3771); // Kick Anket Oyları
+      return pickCheapest([8051]); // Kick Anket Oyları ($1.95)
     }
     if (name.includes("chat") || name.includes("sohbet") || category.includes("chat") || category.includes("sohbet")) {
-      return findById(3787) || findById(3771); // Kick Chat & Sohbet
+      return pickCheapest([3787]); // Kick Chat & Sohbet ($1.22)
     }
     if (name.includes("istirat") || name.includes("kombo") || name.includes("affiliate")) {
-      return findById(7260); // Kick İştirak Takipçi & İzleyici Desteği
+      return pickCheapest([7265, 7260]); // Kick Takipçi 30 Gün Refill ($0.68)
     }
     if (name.includes("takipci") || category.includes("takipci")) {
-      return findById(7260); // 90 Gün Refill Kick Takipçi
+      return pickCheapest([7265, 7260]); // Kick Takipçi En Ucuz ($0.68)
     }
     if (category.includes("saatlik") || name.includes("saatlik") || name.includes("izleyici")) {
-      if (name.includes("2 saat")) return findById(3772); // 2 Saatlik Smooth Canlı İzleyici
-      if (category.includes("24 saat") || name.includes("24 saat") || name.includes("1 gun")) return findById(3776); // 1 Günlük Canlı İzleyici
-      if (category.includes("haftalik") || name.includes("hafta")) return findById(3777); // 1 Haftalık Canlı İzleyici
-      if (category.includes("aylik") || name.includes("ay")) return findById(3778); // 1 Aylık Canlı İzleyici
-      return findById(3771); // 1 Saatlik Smooth Canlı İzleyici
+      if (name.includes("2 saat")) return pickCheapest([3772, 7819]);
+      if (category.includes("24 saat") || name.includes("24 saat") || name.includes("1 gun")) {
+        return pickCheapest([3776, 3784]); // Kick 1 Gün Canlı İzleyici ($9.05)
+      }
+      if (category.includes("haftalik") || name.includes("hafta")) {
+        return pickCheapest([3777, 3785]); // Kick 1 Hafta Canlı İzleyici ($40.25)
+      }
+      if (category.includes("aylik") || name.includes("ay")) {
+        return pickCheapest([3778, 3786]); // Kick 1 Ay Canlı İzleyici ($75.35)
+      }
+      return pickCheapest([3771, 6114, 7818]); // Kick 1 Saat Canlı İzleyici ($0.75)
     }
     if (category.includes("klip") || category.includes("video") || name.includes("klip") || name.includes("izlenme")) {
-      return findById(3779) || findById(3768);
+      return pickCheapest([7512, 8050, 7820]);
     }
   }
 
-  // 2. TWITCH EŞLEŞTİRMELERİ
+  // 2. TWITCH EŞLEŞTİRMELERİ (En Ucuz Muadil)
   if (platform.includes("twitch")) {
     if (name.includes("takipci") || category.includes("takipci")) {
-      return findById(4753) || findById(10162); // 30 Gün Refill Twitch Takipçi
+      return pickCheapest([7189, 7188, 4753, 7190]); // Twitch Takipçi 30 Gün Refill ($0.07)
     }
     if (category.includes("saatlik") || name.includes("saatlik") || name.includes("izleyici")) {
-      if (name.includes("2 saat")) return findById(8153); // 120 Dk %100 Eşzamanlı İzleyici
-      if (category.includes("24 saat") || name.includes("24 saat")) return findById(8157); // 1440 Dk (24 Saat) %100 Eşzamanlı
-      return findById(8151); // 60 Dk %100 Eşzamanlı İzleyici
+      if (name.includes("2 saat")) return pickCheapest([3948, 8153]); // Twitch 2 Saat İzleyici ($1.66)
+      if (category.includes("24 saat") || name.includes("24 saat")) {
+        return pickCheapest([3951, 3898, 8157]); // Twitch 24 Saat İzleyici ($9.09)
+      }
+      return pickCheapest([3947, 8151, 3897]); // Twitch 1 Saat İzleyici ($0.84)
     }
     if (category.includes("klip") || category.includes("video") || name.includes("klip")) {
-      return findById(10160) || findById(10159);
+      return pickCheapest([7511, 10160, 10159]);
     }
   }
 
-  // 3. YOUTUBE EŞLEŞTİRMELERİ
+  // 3. YOUTUBE EŞLEŞTİRMELERİ (En Ucuz Muadil)
   if (platform.includes("youtube")) {
-    if (name.includes("60-75") || name.includes("low drop")) {
-      return findById(8867) || findById(8868); // WatchTime Low Drop 60-75 Min+
-    }
     if (
       name.includes("saat") ||
       name.includes("watchtime") ||
+      name.includes("60-75") ||
+      name.includes("low drop") ||
       category.includes("para kazanma")
     ) {
-      return findById(8868) || findById(8867); // Gerçek YouTube 1000=1000H Watchtime (60+ dk video)
+      return pickCheapest([8868, 10236, 10100, 10101, 8867]); // WatchTime 1000=1000H 60+ dk ($18.20)
     }
     if (name.includes("abone") || (category.includes("abone") && !name.includes("izlenme"))) {
-      return findById(9694) || findById(7478); // 30 Gün Refill Gerçek Abone
+      return pickCheapest([10226, 7478, 8073, 8355]); // YouTube Abone En Ucuz ($0.01)
     }
     if (category.includes("video") || category.includes("izlenme") || name.includes("izlenme")) {
-      return findById(9662); // 60 Gün Refill Real Video Views
+      return pickCheapest([1385, 6183, 6182, 9662]); // YouTube Yüksek İzlenme Süreli ($0.60)
     }
   }
 
-  // 4. TIKTOK EŞLEŞTİRMELERİ
+  // 4. TIKTOK EŞLEŞTİRMELERİ (En Ucuz Muadil)
   if (platform.includes("tiktok")) {
     if (name.includes("takipci")) {
-      return findById(7720) || findById(10295); // 30 Gün Refill TikTok Takipçi
+      return pickCheapest([9405, 5760, 5447, 7720]); // TikTok Takipçi ($0.84)
     }
     if (name.includes("pk") || name.includes("canli") || category.includes("pk")) {
-      return findById(9855) || findById(9197); // TikTok Canlı Yayın & PK Desteği
+      if (name.includes("60") || name.includes("1 saat")) {
+        return pickCheapest([2836, 9855]); // TikTok Canlı 60 Dk ($15.66)
+      }
+      return pickCheapest([2835, 9855]); // TikTok Canlı 30 Dk ($7.83, min=50)
     }
     if (category.includes("izlenme") || name.includes("izlenme")) {
-      return findById(9592) || findById(9593); // TikTok Monetizable Views
+      return pickCheapest([9924, 9592, 9593]); // TikTok Video İzlenme ($0.01)
     }
     if (category.includes("begeni") || name.includes("begeni")) {
-      return findById(7710);
+      return pickCheapest([7710]);
     }
   }
 
-  // 5. INSTAGRAM EŞLEŞTİRMELERİ
+  // 5. INSTAGRAM EŞLEŞTİRMELERİ (En Ucuz Muadil)
   if (platform.includes("instagram")) {
     if (name.includes("takipci") || category.includes("takipci")) {
-      return findById(5542) || findById(10304); // 30 Gün Refill Hızlı Takipçi
+      return pickCheapest([5752, 9598, 5839, 5542]); // Instagram Takipçi ($0.54)
     }
     if (category.includes("begeni") || name.includes("begeni")) {
-      return findById(10305);
+      return pickCheapest([10305]);
     }
     if (category.includes("reels") || category.includes("izlenme") || name.includes("izlenme")) {
-      return findById(10239);
+      return pickCheapest([10239]);
     }
   }
 
-  // 6. TWITTER / X EŞLEŞTİRMELERİ
+  // 6. TWITTER / X EŞLEŞTİRMELERİ (En Ucuz Muadil)
   if (platform.includes("twitter") || platform.includes("x")) {
     if (category.includes("takipci") || name.includes("takipci")) {
-      return findById(9888); // 30 Gün Refill Power Followers
+      return pickCheapest([5125, 4786, 8354, 9888]); // X Takipçi ($0.69)
     }
   }
 
-  // 7. DISCORD
+  // 7. DISCORD (En Ucuz Muadil)
   if (platform.includes("discord")) {
-    if (name.includes("cevrimici") || name.includes("online")) {
-      return findById(6373) || findById(10220); // Discord Çevrimiçi Üye
-    }
     if (name.includes("tepki") || name.includes("reaction")) {
-      return findById(9631); // Discord Emoji Tepki
+      return pickCheapest([9631, 9632]); // Discord Mesaj Tepki ($1.87)
     }
-    if (name.includes("topluluk") || name.includes("uye") || category.includes("uye")) {
-      return findById(7344) || findById(10220); // Discord Topluluk Üyesi 30 Gün Refill
+    if (name.includes("cevrimici") || name.includes("online") || name.includes("topluluk") || name.includes("uye") || category.includes("uye")) {
+      return pickCheapest([7344, 10220]); // Discord Üye 30 Gün Refill, Max 6500 ($1.68)
     }
     if (category.includes("boost")) {
-      return findById(5135);
+      return pickCheapest([5135]);
     }
   }
 
-  // 8. SPOTIFY
+  // 8. SPOTIFY (En Ucuz Muadil)
   if (platform.includes("spotify")) {
     if (name.includes("aylik") || name.includes("dinleyici") || category.includes("dinleyici")) {
-      return findById(9434) || findById(9433); // Spotify Aylık Dinleyici
+      return pickCheapest([2069, 9410, 9431, 9434]); // Spotify Aylık Dinleyici ($1.69)
     }
     if (name.includes("dinlenme") || category.includes("dinlenme") || name.includes("sarki")) {
-      return findById(2549) || findById(10070); // Spotify Şarkı Dinlenme
+      return pickCheapest([10215, 1612, 2549]); // Spotify Şarkı Dinlenme Global ($0.16)
     }
     if (category.includes("takipci")) {
-      return findById(5479) || findById(3491);
+      return pickCheapest([1981, 5479, 3491]);
     }
   }
 
-  // 9. TELEGRAM
+  // 9. TELEGRAM (En Ucuz Muadil)
   if (platform.includes("telegram")) {
-    if (name.includes("goruntulenme") || name.includes("tepki") || category.includes("tepki")) {
-      return findById(9213) || findById(7509); // Telegram Gönderi Görüntülenme & Tepki
+    if (name.includes("tepki") && !name.includes("goruntulenme")) {
+      return pickCheapest([8510, 2737]);
+    }
+    if (name.includes("goruntulenme") || category.includes("tepki")) {
+      return pickCheapest([4880, 8500, 9213, 8510]); // Telegram Gönderi Görüntülenme ($0.02)
     }
     if (name.includes("kanal") || name.includes("uye") || category.includes("uye")) {
-      return findById(7507) || findById(9244) || findById(10229); // Telegram Kanal Üyesi
+      return pickCheapest([1640, 7670, 5753, 7507]); // Telegram Kanal Üyesi ($0.03)
     }
   }
 

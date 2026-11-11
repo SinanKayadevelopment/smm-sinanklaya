@@ -87,140 +87,153 @@ async function runSync() {
 
   const findById = (id) => services.find((s) => Number(s.service) === Number(id)) || null;
 
+  function pickCheapest(ids, qty) {
+    const found = ids.map((id) => findById(id)).filter(Boolean);
+    if (found.length === 0) return null;
+    const withinMax = found.filter((s) => (Number(s.max) || 0) >= qty);
+    const pool = withinMax.length > 0 ? withinMax : found;
+    return [...pool].sort((a, b) => parseFloat(a.rate) - parseFloat(b.rate))[0];
+  }
+
   function matchMtpService(pkg) {
     const platform = cleanTurkish(pkg.category.platform.name);
     const category = cleanTurkish(pkg.category.name);
     const name = cleanTurkish(pkg.name);
+    const qty = pkg.quantity;
 
-    // 1. KICK
+    // 1. KICK (En Ucuz Muadil)
     if (platform.includes("kick")) {
       if (name.includes("anket") || category.includes("anket")) {
-        return findById(8051) || findById(3771);
+        return pickCheapest([8051], qty);
       }
       if (name.includes("chat") || name.includes("sohbet") || category.includes("chat") || category.includes("sohbet")) {
-        return findById(3787) || findById(3771);
+        return pickCheapest([3787], qty);
       }
       if (name.includes("istirat") || name.includes("kombo") || name.includes("affiliate")) {
-        return findById(7260);
+        return pickCheapest([7265, 7260], qty);
       }
       if (name.includes("takipci") || category.includes("takipci")) {
-        return findById(7260);
+        return pickCheapest([7265, 7260], qty);
       }
       if (category.includes("saatlik") || name.includes("saatlik") || name.includes("izleyici")) {
-        if (name.includes("2 saat")) return findById(3772);
-        if (category.includes("24 saat") || name.includes("24 saat") || name.includes("1 gun")) return findById(3776);
-        if (category.includes("haftalik") || name.includes("hafta")) return findById(3777);
-        if (category.includes("aylik") || name.includes("ay")) return findById(3778);
-        return findById(3771);
+        if (name.includes("2 saat")) return pickCheapest([3772, 7819], qty);
+        if (category.includes("24 saat") || name.includes("24 saat") || name.includes("1 gun")) {
+          return pickCheapest([3776, 3784], qty);
+        }
+        if (category.includes("haftalik") || name.includes("hafta")) return pickCheapest([3777, 3785], qty);
+        if (category.includes("aylik") || name.includes("ay")) return pickCheapest([3778, 3786], qty);
+        return pickCheapest([3771, 6114, 7818], qty);
       }
       if (category.includes("klip") || category.includes("video") || name.includes("klip")) {
-        return findById(3779) || findById(3768);
+        return pickCheapest([7512, 8050, 7820], qty);
       }
     }
 
-    // 2. TWITCH
+    // 2. TWITCH (En Ucuz Muadil)
     if (platform.includes("twitch")) {
       if (name.includes("takipci") || category.includes("takipci")) {
-        return findById(4753) || findById(10162);
+        return pickCheapest([7189, 7188, 4753, 7190], qty);
       }
       if (category.includes("saatlik") || name.includes("saatlik") || name.includes("izleyici")) {
-        if (name.includes("2 saat")) return findById(8153);
-        if (category.includes("24 saat") || name.includes("24 saat")) return findById(8157);
-        return findById(8151);
+        if (name.includes("2 saat")) return pickCheapest([3948, 8153], qty);
+        if (category.includes("24 saat") || name.includes("24 saat")) return pickCheapest([3951, 3898, 8157], qty);
+        return pickCheapest([3947, 8151, 3897], qty);
       }
       if (category.includes("klip") || category.includes("video") || name.includes("klip")) {
-        return findById(10160) || findById(10159);
+        return pickCheapest([7511, 10160, 10159], qty);
       }
     }
 
-    // 3. YOUTUBE
+    // 3. YOUTUBE (En Ucuz Muadil)
     if (platform.includes("youtube")) {
-      if (name.includes("60-75") || name.includes("low drop")) {
-        return findById(8867) || findById(8868);
-      }
       if (
         name.includes("saat") ||
         name.includes("watchtime") ||
+        name.includes("60-75") ||
+        name.includes("low drop") ||
         category.includes("para kazanma")
       ) {
-        return findById(8868) || findById(8867);
+        return pickCheapest([8868, 10236, 10100, 10101, 8867], qty);
       }
       if (name.includes("abone") || (category.includes("abone") && !name.includes("izlenme"))) {
-        return findById(9694) || findById(7478);
+        return pickCheapest([10226, 7478, 8073, 8355], qty);
       }
       if (category.includes("video") || category.includes("izlenme") || name.includes("izlenme")) {
-        return findById(9662);
+        return pickCheapest([1385, 6183, 6182, 9662], qty);
       }
     }
 
-    // 4. TIKTOK
+    // 4. TIKTOK (En Ucuz Muadil)
     if (platform.includes("tiktok")) {
       if (name.includes("takipci")) {
-        return findById(7720) || findById(10295);
+        return pickCheapest([9405, 5760, 5447, 7720], qty);
       }
       if (name.includes("pk") || name.includes("canli") || category.includes("pk")) {
-        return findById(9855) || findById(9197);
+        if (name.includes("60") || name.includes("1 saat")) {
+          return pickCheapest([2836, 9855], qty);
+        }
+        return pickCheapest([2835, 9855], qty);
       }
       if (category.includes("izlenme") || name.includes("izlenme")) {
-        return findById(9592) || findById(9593);
+        return pickCheapest([9924, 9592, 9593], qty);
       }
       if (category.includes("begeni") || name.includes("begeni")) {
-        return findById(7710);
+        return pickCheapest([7710], qty);
       }
     }
 
-    // 5. INSTAGRAM
+    // 5. INSTAGRAM (En Ucuz Muadil)
     if (platform.includes("instagram")) {
       if (name.includes("takipci") || category.includes("takipci")) {
-        return findById(5542) || findById(10304);
+        return pickCheapest([5752, 9598, 5839, 5542], qty);
       }
       if (category.includes("begeni") || name.includes("begeni")) {
-        return findById(10305);
+        return pickCheapest([10305], qty);
       }
       if (category.includes("reels") || category.includes("izlenme") || name.includes("izlenme")) {
-        return findById(10239);
+        return pickCheapest([10239], qty);
       }
     }
 
-    // 6. TWITTER / X
+    // 6. TWITTER / X (En Ucuz Muadil)
     if (platform.includes("twitter") || platform.includes("x")) {
       if (category.includes("takipci") || name.includes("takipci")) {
-        return findById(9888);
+        return pickCheapest([5125, 4786, 8354, 9888], qty);
       }
     }
 
-    // 7. DISCORD
+    // 7. DISCORD (En Ucuz Muadil)
     if (platform.includes("discord")) {
-      if (name.includes("cevrimici") || name.includes("online")) {
-        return findById(6373) || findById(10220);
-      }
       if (name.includes("tepki") || name.includes("reaction")) {
-        return findById(9631);
+        return pickCheapest([9631, 9632], qty);
       }
-      if (name.includes("topluluk") || name.includes("uye") || category.includes("uye")) {
-        return findById(7344) || findById(10220);
+      if (name.includes("cevrimici") || name.includes("online") || name.includes("topluluk") || name.includes("uye") || category.includes("uye")) {
+        return pickCheapest([7344, 10220], qty);
       }
-      if (category.includes("boost")) return findById(5135);
+      if (category.includes("boost")) return pickCheapest([5135], qty);
     }
 
-    // 8. SPOTIFY
+    // 8. SPOTIFY (En Ucuz Muadil)
     if (platform.includes("spotify")) {
       if (name.includes("aylik") || name.includes("dinleyici") || category.includes("dinleyici")) {
-        return findById(9434) || findById(9433);
+        return pickCheapest([2069, 9410, 9431, 9434], qty);
       }
       if (name.includes("dinlenme") || category.includes("dinlenme") || name.includes("sarki")) {
-        return findById(2549) || findById(10070);
+        return pickCheapest([10215, 1612, 2549], qty);
       }
-      if (category.includes("takipci")) return findById(5479);
+      if (category.includes("takipci")) return pickCheapest([1981, 5479], qty);
     }
 
-    // 9. TELEGRAM
+    // 9. TELEGRAM (En Ucuz Muadil)
     if (platform.includes("telegram")) {
-      if (name.includes("goruntulenme") || name.includes("tepki") || category.includes("tepki")) {
-        return findById(9213) || findById(7509);
+      if (name.includes("tepki") && !name.includes("goruntulenme")) {
+        return pickCheapest([8510, 2737], qty);
+      }
+      if (name.includes("goruntulenme") || category.includes("tepki")) {
+        return pickCheapest([4880, 8500, 9213, 8510], qty);
       }
       if (name.includes("kanal") || name.includes("uye") || category.includes("uye")) {
-        return findById(7507) || findById(9244);
+        return pickCheapest([1640, 7670, 5753, 7507], qty);
       }
     }
 
