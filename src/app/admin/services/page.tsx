@@ -184,6 +184,23 @@ export default function AdminServicesPage() {
     }
   };
 
+  // MoreThanPanel'deki 1.000 quantity ($) fiyatını baz alarak satış ve eski fiyat hesaplar (1 USD = 51 TL, %350 kâr)
+  const computePriceFrom1kRate = (rateStr: string, targetQty: number) => {
+    const rate = parseFloat(rateStr) || 0;
+    const qty = Math.max(1, targetQty || 1);
+    const costTL = (rate / 1000) * qty * 51;
+    let sellingPrice = costTL * 4.5;
+    if (sellingPrice < 19.9) {
+      sellingPrice = 19.9;
+    } else {
+      sellingPrice = Math.max(19.9, Math.round(sellingPrice) - 0.1);
+    }
+    return {
+      price: sellingPrice.toFixed(2),
+      oldPrice: (sellingPrice * 1.35).toFixed(2),
+    };
+  };
+
   // Bir Servisi Seçip Manuel Paket Üretme
   const handleSelectService = (s: ServiceItem) => {
     setSelectedService(s);
@@ -203,11 +220,9 @@ export default function AdminServicesPage() {
     const minQty = parseInt(s.min, 10) || 100;
     setQuantity(minQty.toString());
 
-    const rate = parseFloat(s.rate);
-    const costTL = (rate / 1000) * minQty * 51;
-    const initialPrice = Math.max(19.9, Math.round(costTL * 4.5) - 0.1);
-    setPrice(initialPrice.toFixed(2));
-    setOldPrice((initialPrice * 1.35).toFixed(2));
+    const computed = computePriceFrom1kRate(s.rate, minQty);
+    setPrice(computed.price);
+    setOldPrice(computed.oldPrice);
 
     const matchedPlat = platforms.find(
       (p) =>
@@ -687,7 +702,16 @@ export default function AdminServicesPage() {
                   <input
                     type="number"
                     value={quantity}
-                    onChange={(e) => setQuantity(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setQuantity(val);
+                      const parsedQty = parseInt(val, 10);
+                      if (selectedService && parsedQty > 0) {
+                        const computed = computePriceFrom1kRate(selectedService.rate, parsedQty);
+                        setPrice(computed.price);
+                        setOldPrice(computed.oldPrice);
+                      }
+                    }}
                     className="w-full bg-[#1E293B] border border-gray-700 rounded-xl px-3 py-2.5 text-white font-mono focus:outline-none"
                     required
                   />
