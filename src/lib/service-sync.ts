@@ -160,11 +160,18 @@ export function matchMtpServiceForPackage(
 
   // 3. YOUTUBE EŞLEŞTİRMELERİ
   if (platform.includes("youtube")) {
-    if (name.includes("abone") || category.includes("abone")) {
-      return findById(9694) || findById(7478); // 30 Gün Refill Gerçek Abone
+    if (name.includes("60-75") || name.includes("low drop")) {
+      return findById(8867) || findById(8868); // WatchTime Low Drop 60-75 Min+
     }
-    if (name.includes("saat") || category.includes("saat") || name.includes("watchtime")) {
-      return findById(9681) || findById(9662); // YouTube Yüksek Tutma Oranlı Watchtime İzlenmeleri
+    if (
+      name.includes("saat") ||
+      name.includes("watchtime") ||
+      category.includes("para kazanma")
+    ) {
+      return findById(8868) || findById(8867); // Gerçek YouTube 1000=1000H Watchtime (60+ dk video)
+    }
+    if (name.includes("abone") || (category.includes("abone") && !name.includes("izlenme"))) {
+      return findById(9694) || findById(7478); // 30 Gün Refill Gerçek Abone
     }
     if (category.includes("video") || category.includes("izlenme") || name.includes("izlenme")) {
       return findById(9662); // 60 Gün Refill Real Video Views
@@ -271,7 +278,7 @@ export function matchMtpServiceForPackage(
 
 /**
  * Fiyat hesaplama:
- * - 1 USD = 36 TL baz alınır.
+ * - 1 USD = 51 TL baz alınır.
  * - %350 kâr marjı (Maliyet x 4.5) uygulanır.
  * - Minimum paket satış fiyatı 19.90 TL olur.
  * - E-ticaret standartlarında .90 kuruşa tamamlanır.
@@ -280,7 +287,7 @@ export function calculateSellingPrice(
   rateUSDPer1k: number,
   quantity: number
 ): { costUSD: number; costTRY: number; price: number; oldPrice: number } {
-  const USD_TRY = 36.0;
+  const USD_TRY = 51.0;
   const MARGIN_MULTIPLIER = 4.5; // %350 kâr marjı (1 + 3.5)
 
   const costUSD = (rateUSDPer1k / 1000) * quantity;

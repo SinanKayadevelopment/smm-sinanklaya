@@ -160,7 +160,7 @@ export default function AdminServicesPage() {
   // Otomatik MoreThanPanel Senkronizasyon Tetikleyici
   const handleAutoSync = async () => {
     const confirmed = confirm(
-      "Tüm vitrin paketleri MoreThanPanel'deki GERÇEK servislerle eşleştirilecek, minimum sipariş limitleri uygulanacak ve satış fiyatları (1 USD = 36 TL, %350 kâr marjı, min 19.90 TL) otomatik güncellenecektir. Onaylıyor musunuz?"
+      "Tüm vitrin paketleri MoreThanPanel'deki GERÇEK servislerle eşleştirilecek, minimum sipariş limitleri uygulanacak ve satış fiyatları (1 USD = 51 TL, %350 kâr marjı, min 19.90 TL) otomatik güncellenecektir. Onaylıyor musunuz?"
     );
     if (!confirmed) return;
 
@@ -204,7 +204,7 @@ export default function AdminServicesPage() {
     setQuantity(minQty.toString());
 
     const rate = parseFloat(s.rate);
-    const costTL = (rate / 1000) * minQty * 36;
+    const costTL = (rate / 1000) * minQty * 51;
     const initialPrice = Math.max(19.9, Math.round(costTL * 4.5) - 0.1);
     setPrice(initialPrice.toFixed(2));
     setOldPrice((initialPrice * 1.35).toFixed(2));
@@ -304,7 +304,7 @@ export default function AdminServicesPage() {
             MoreThanPanel ile Tüm Paketleri Otomatik Eşleştir ve Güncelle
           </h2>
           <p className="text-xs sm:text-sm text-purple-200 max-w-2xl font-normal leading-relaxed">
-            Vitrinindeki 31 paketin Service ID&apos;lerini MoreThanPanel&apos;deki gerçek servislerle bağlar, minimum sipariş miktarını denetler ve 1 USD = 36 TL + %350 kâr marjıyla satış fiyatlarını anında günceller.
+            Vitrinindeki tüm paketlerin Service ID&apos;lerini MoreThanPanel&apos;deki gerçek servislerle bağlar, minimum sipariş miktarını denetler ve 1 USD = 51 TL + %350 kâr marjıyla satış fiyatlarını anında günceller.
           </p>
         </div>
 
@@ -477,7 +477,7 @@ export default function AdminServicesPage() {
               <div className="p-3.5 rounded-2xl bg-[#1E293B] border border-amber-500/30">
                 <div className="text-[11px] text-amber-300 font-medium">Taban Satış Fiyatı</div>
                 <div className="text-xl font-black text-amber-300 font-mono mt-0.5">
-                  19.90 ₺ (1 USD=36 TL)
+                  19.90 ₺ (1 USD=51 TL)
                 </div>
               </div>
             </div>

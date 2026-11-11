@@ -16,7 +16,7 @@ function cleanTurkish(str) {
 }
 
 function calculateSellingPrice(rateUSDPer1k, quantity) {
-  const USD_TRY = 36.0;
+  const USD_TRY = 51.0;
   const MARGIN_MULTIPLIER = 4.5; // %350 kâr marjı (1 + 3.5)
 
   const costUSD = (rateUSDPer1k / 1000) * quantity;
@@ -135,11 +135,18 @@ async function runSync() {
 
     // 3. YOUTUBE
     if (platform.includes("youtube")) {
-      if (name.includes("abone") || category.includes("abone")) {
-        return findById(9694) || findById(7478);
+      if (name.includes("60-75") || name.includes("low drop")) {
+        return findById(8867) || findById(8868);
       }
-      if (name.includes("saat") || category.includes("saat") || name.includes("watchtime")) {
-        return findById(9681) || findById(9662);
+      if (
+        name.includes("saat") ||
+        name.includes("watchtime") ||
+        category.includes("para kazanma")
+      ) {
+        return findById(8868) || findById(8867);
+      }
+      if (name.includes("abone") || (category.includes("abone") && !name.includes("izlenme"))) {
+        return findById(9694) || findById(7478);
       }
       if (category.includes("video") || category.includes("izlenme") || name.includes("izlenme")) {
         return findById(9662);
